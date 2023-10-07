@@ -70,7 +70,7 @@ class ApiRequest {
       List<int> message = [];
       final subscription = socket
         .timeout(
-          const Duration(milliseconds: 3000),
+          const Duration(milliseconds: 500),
           onTimeout: (sink) {
             sink.close();
           },
