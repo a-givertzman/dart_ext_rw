@@ -18,6 +18,8 @@ dependencies:
       git:
         url: https://github.com/a-givertzman/hmi_core.git
         ref: master # branch name
+  logging: ^1.1.1
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_test:
@@ -32,8 +34,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-  assets:
-    - assets/test/
+  # assets:
+    # - assets/test/
   # To add assets to your package, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

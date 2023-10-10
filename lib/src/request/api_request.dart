@@ -33,18 +33,15 @@ class ApiRequest {
             return result.fold(
               onData: (_) {
                 return _read(socket).then((result) {
-                  return result.fold(
-                    onData: (bytes) {
-                      return Result<ApiReply>(
-                        data: ApiReply.fromJson(
-                          utf8.decode(bytes),
-                        ),
-                      );
-                    }, 
-                    onError: (err) {
-                      return Result<ApiReply>(error: err);
-                    },
-                  );
+                  if (result.hasError) {
+                    return Result<ApiReply>(error: result.error);
+                  } else {
+                    return Result(
+                      data: ApiReply.fromJson(
+                        utf8.decode(result.data),
+                      ),
+                    );
+                  }
                 });
               }, 
               onError: (err) {
