@@ -1,4 +1,4 @@
-import 'package:dart_api_client/src/table_schema/schema_entry.dart';
+import 'package:ext_rw/src/table_schema/schema_entry.dart';
 
 ///
 /// - hosds simple SQL

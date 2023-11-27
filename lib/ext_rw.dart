@@ -1,4 +1,4 @@
-library dart_api_clientcore;
+library ext_rwcore;
 
 export 'src/api_client/address/api_address.dart';
 export 'src/api_client/query/api_query_type.dart';

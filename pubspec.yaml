@@ -1,7 +1,7 @@
-name: dart_api_client
+name: ext_rw
 description: API tools on client side for Dart / Flutter application
 version: 0.0.1
-homepage: https://github.com/a-givertzman/dart_api_client
+homepage: https://github.com/a-givertzman/dart_ext_rw
 publish_to: none
 
 environment:

@@ -1,5 +1,5 @@
 
-import 'package:dart_api_client/src/table_schema/relation.dart';
+import 'package:ext_rw/src/table_schema/relation.dart';
 
 ///
 /// Replresentation settings for table column

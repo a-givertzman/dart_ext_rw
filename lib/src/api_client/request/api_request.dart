@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart_api_client/src/api_client/query/api_query_type.dart';
-import 'package:dart_api_client/src/api_client/address/api_address.dart';
-import 'package:dart_api_client/src/api_client/reply/api_reply.dart';
+import 'package:ext_rw/src/api_client/query/api_query_type.dart';
+import 'package:ext_rw/src/api_client/address/api_address.dart';
+import 'package:ext_rw/src/api_client/reply/api_reply.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;

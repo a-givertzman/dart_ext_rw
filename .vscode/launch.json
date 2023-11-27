@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "dart_api_client",
+            "name": "ext_rw",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "dart_api_client (profile mode)",
+            "name": "ext_rw (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "dart_api_client (release mode)",
+            "name": "ext_rw (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

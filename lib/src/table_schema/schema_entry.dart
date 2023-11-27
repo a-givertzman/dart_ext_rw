@@ -1,5 +1,5 @@
 
-import 'package:dart_api_client/src/table_schema/field_value.dart';
+import 'package:ext_rw/src/table_schema/field_value.dart';
 
 ///
 /// abstruction on the SQL table single row

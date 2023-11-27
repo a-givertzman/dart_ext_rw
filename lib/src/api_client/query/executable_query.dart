@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:dart_api_client/src/api_client/query/api_query_type.dart';
+import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:uuid/uuid.dart';
 
 class ExecutableQuery implements ApiQueryType {
