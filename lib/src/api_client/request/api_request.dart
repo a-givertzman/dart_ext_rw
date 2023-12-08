@@ -31,8 +31,8 @@ class ApiRequest {
     _address = address,
     _authToken = authToken;
   ///
-  /// sends created request to the remote
-  /// returns reply if exists
+  /// Sends [query] to the remote.
+  /// Returns reply if exists.
   Future<Result<ApiReply, Failure>> fetch(ApiQueryType query) async {
     final queryWithHeaders = {
       'authToken': _authToken,
