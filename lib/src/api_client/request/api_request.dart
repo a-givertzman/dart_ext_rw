@@ -16,20 +16,32 @@ import 'package:hmi_core/hmi_core_result_new.dart';
 class ApiRequest {
   static final _log = const Log('ApiRequest')..level = LogLevel.info;
   final ApiAddress _address;
-  final ApiQueryType _query;
+  final String _authToken;
+  final bool _debug;
+  final bool _keepAlive;
   ///
-  ApiRequest({
+  const ApiRequest({
     required ApiAddress address,
-    required ApiQueryType query,
+    required String authToken,
+    bool debug = false,
+    bool keepAlive = false,
   }) :
+    _debug = debug,
+    _keepAlive = keepAlive,
     _address = address,
-    _query = query;
+    _authToken = authToken;
   ///
   /// sends created request to the remote
   /// returns reply if exists
-  Future<Result<ApiReply, Failure>> fetch() async {
-    final query = _query.buildJson();
-    final bytes = utf8.encode(query);
+  Future<Result<ApiReply, Failure>> fetch(ApiQueryType query) async {
+    final queryWithHeaders = {
+      'authToken': _authToken,
+      'debug': _debug,
+      'keepAlive': _keepAlive,
+      ...query.buildJson(),
+    };
+    final jsonString = json.encode(queryWithHeaders);
+    final bytes = utf8.encode(jsonString);
     if (kIsWeb) {
       return _fetchWebSocket(bytes);
     } else {

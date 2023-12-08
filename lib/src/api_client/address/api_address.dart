@@ -9,7 +9,7 @@ class ApiAddress {
     _host = host,
     _port = port;
   ///
-  ApiAddress.localhost({
+  const ApiAddress.localhost({
     int port = 8899,
   }) : 
     _host = '127.0.0.1',

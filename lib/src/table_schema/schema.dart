@@ -8,17 +8,13 @@ import 'package:hmi_core/hmi_core_result_new.dart';
 
 typedef SqlBuilder<T extends SchemaEntry> = Sql Function(Sql sql, T entry);
 
-
 ///
 /// A collection of the SchameEntry, 
 /// abstruction on the SQL table rows
 class Schema<T extends SchemaEntry> {
   late final Log _log;
-  final ApiAddress _address;
-  final String _authToken;
+  final ApiRequest _request;
   final String _database;
-  final bool _keepAlive;
-  final bool _debug;
   final List<Field> _fields;
   final Map<String, T> _entries = {};
   final Sql Function(List<dynamic>? values) _fetchSqlBuilder;
@@ -33,12 +29,9 @@ class Schema<T extends SchemaEntry> {
   /// abstruction on the SQL table rows
   /// - [keys] - list of table field names
   Schema({
-    required ApiAddress address,
-    required String authToken,
+    required ApiRequest request,
     required String database,
     required List<Field> fields,
-    bool keepAlive = false,
-    bool debug = false,
     required Sql Function(List<dynamic>? values) fetchSqlBuilder,
     SqlBuilder<T>? insertSqlBuilder,
     SqlBuilder<T>? updateSqlBuilder,
@@ -46,12 +39,9 @@ class Schema<T extends SchemaEntry> {
     required Map<T, Function> entryFromFactories,
     required Map<T, Function> entryEmptyFactories,
   }) :
-    _address = address,
-    _authToken = authToken,
+    _request = request,
     _database = database,
     _fields = fields,
-    _keepAlive = keepAlive,
-    _debug = debug,
     _fetchSqlBuilder = fetchSqlBuilder,
     _insertSqlBuilder = insertSqlBuilder,
     _updateSqlBuilder = updateSqlBuilder,
@@ -115,17 +105,11 @@ class Schema<T extends SchemaEntry> {
   ///
   /// Fetchs data with new [sql]
   Future<Result<List<T>, Failure>> fetchWith(Sql sql) {
-    final request = ApiRequest(
-      address: _address, 
-      query: SqlQuery(
-        authToken: _authToken, 
-        database: _database,
-        sql: sql.build(),
-        keepAlive: _keepAlive,
-        debug: _debug,
-      ),
+    final query = SqlQuery(
+      database: _database,
+      sql: sql.build(),
     );
-    return request.fetch().then((result) {
+    return _request.fetch(query).then((result) {
       return switch (result) {
         Ok(:final value) => () {
           final reply = value;
