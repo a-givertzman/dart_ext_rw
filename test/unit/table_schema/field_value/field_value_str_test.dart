@@ -95,23 +95,28 @@ void main() {
       },
       {
         'value': null,
+        'type': FieldType.unknown,
+        'str': 'null',
+      },
+      {
+        'value': null,
         'type': FieldType.string,
-        'str': null,
+        'str': 'null',
       },
       {
         'value': null,
         'type': FieldType.int,
-        'str': null,
+        'str': 'null',
       },
       {
         'value': null,
         'type': FieldType.double,
-        'str': null,
+        'str': 'null',
       },
       {
         'value': null,
         'type': FieldType.bool,
-        'str': null,
+        'str': 'null',
       },
       {
         'value': _TestObject(),
@@ -140,7 +145,7 @@ void main() {
       'str': str as String?,
     } in valueMaps) {
       final fieldValue = FieldValue(value, type: type);
-      expect(fieldValue.str, equals(str));
+      expect(fieldValue.str, equals(str), reason: 'value: $value, type: $type, str: $str');
     }
   });
 }

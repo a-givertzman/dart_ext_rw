@@ -10,7 +10,7 @@ void main() {
       expect(field.key, equals(key));
       expect(field.title, equals(key));
       expect(field.isHidden, equals(false));
-      expect(field.isEditable, equals(true));
+      expect(field.isEditable, equals(false));
       expect(field.relation, equals(const Relation.empty()));
     });
     test('sets provided values', () {
