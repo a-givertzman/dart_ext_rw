@@ -18,17 +18,23 @@ class ApiRequest {
   final ApiAddress _address;
   final String _authToken;
   final ApiQueryType _query;
+  final Duration _timeout;
+  final Duration _connectTimeout;
   final bool _debug;
   ///
   ApiRequest({
     required String authToken,
     required ApiAddress address,
     required ApiQueryType query,
+    Duration timeout = const Duration(milliseconds: 3000),
+    Duration connectTimeout = const Duration(milliseconds: 256),
     bool debug = false,
   }) :
     _authToken = authToken,
     _address = address,
     _query = query,
+    _timeout = timeout,
+    _connectTimeout = connectTimeout,
     _debug = debug;
   ///
   String get authToken => _authToken;
@@ -59,7 +65,7 @@ class ApiRequest {
   ///
   /// Fetching on tcp socket
   Future<Result<ApiReply, Failure>> _fetchSocket(List<int> bytes) {
-    return Socket.connect(_address.host, _address.port, timeout: const Duration(seconds: 3))
+    return Socket.connect(_address.host, _address.port, timeout: _connectTimeout)
       .then((socket) async {
         return _send(socket, bytes)
           .then((result) {
@@ -130,7 +136,7 @@ class ApiRequest {
       List<int> message = [];
       final subscription = socket
         .timeout(
-          const Duration(milliseconds: 3000),
+          _timeout,
           onTimeout: (sink) {
             sink.close();
           },
@@ -159,7 +165,7 @@ class ApiRequest {
       List<int> message = [];
       final subscription = socket
         .timeout(
-          const Duration(milliseconds: 3000),
+          _timeout,
           onTimeout: (sink) {
             sink.close();
           },
