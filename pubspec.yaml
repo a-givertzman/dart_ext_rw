@@ -10,21 +10,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  logging: ^1.1.1
+  logging: ^1.3.0
   hmi_core:
       git:
         url: https://github.com/a-givertzman/hmi_core.git
         ref: 2.0.0
+  uuid: ^4.5.1
+  web_socket_channel: ^3.0.1
+
+dependency_overrides:
   uuid: ^3.0.7
-  web_socket_channel: ^2.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  lint: ^2.1.2
-  mockito: ^5.3.0
-  flutter_lints: ^3.0.0
-  dart_code_metrics: ^5.7.0
+  lint: ^2.3.0
+  mockito: ^5.4.4
+  flutter_lints: ^5.0.0
+  dart_code_metrics: ^5.7.6
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
