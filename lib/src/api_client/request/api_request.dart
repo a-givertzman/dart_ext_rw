@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:ext_rw/src/api_client/address/api_address.dart';
 import 'package:ext_rw/src/api_client/reply/api_reply.dart';
+import 'package:ext_rw/src/api_client/request/message.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -189,6 +190,7 @@ class ApiRequest {
     }
   }
   ///
+  /// Sends bytes over WEB socket
   Future<Result<bool, Failure>> _sendWeb(WebSocket socket, List<int> bytes) async {
     try {
       socket.add(bytes);
@@ -204,9 +206,11 @@ class ApiRequest {
     }
   }
   ///
+  /// Sends bytes over raw TCP socket
   Future<Result<bool, Failure>> _send(Socket socket, List<int> bytes) async {
+    final message = Message(fieldkind: FieldKind.string, fieldSize: FieldSize(bytes.length), fieldData: FieldData(bytes));
     try {
-      socket.add(bytes);
+      socket.add(message.bytes());
       return Future.value(const Ok(true));
     } catch (error) {
       _log.warning('._send | socket error: $error');

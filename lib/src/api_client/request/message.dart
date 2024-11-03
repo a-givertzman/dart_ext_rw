@@ -32,6 +32,7 @@
 //!     - 49, Duration
 //!     - .., ...
 
+import 'dart:typed_data';
 ///
 ///
 class FieldSyn {
@@ -63,21 +64,26 @@ enum FieldKind {
   duration(49);
   ///
   /// Returns FieldKind new instance
-  const FieldKind(this.value);
-  final num value;
+  const FieldKind(this._value);
+  final int _value;
+  ///
+  int get kind => _value;
 }
 ///
 ///
 class FieldSize {
-  final int size;
+  final int _size;
   ///
   /// Returns FieldSize new instance
-  FieldSize(this.size);
+  FieldSize(this._size);
+  ///
+  /// Returns size as bytes
+  Uint8List get size => Uint8List(4)..buffer.asByteData().setInt32(0, _size, Endian.big);
 }
 ///
 ///
 class FieldData {
-  final int bytes;
+  final List<int> bytes;
   ///
   /// Returns FieldData new instance
   FieldData(this.bytes);
@@ -100,6 +106,6 @@ class Message {
   ///
   /// Returns message bytes built of the specified fields
   List<int> bytes() {
-    return [];
+    return [fieldSyn.syn, fieldkind.kind, ...fieldSize.size, ...fieldData.bytes];
   }
 }
