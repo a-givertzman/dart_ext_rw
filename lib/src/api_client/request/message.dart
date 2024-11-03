@@ -128,6 +128,7 @@ class Message {
   ///
   /// Returns ([FieldKind], [FieldSize], [FieldData]) if parsed
   Result<(FieldKind, FieldSize, FieldData), Failure> parse(List<int> bytes) {
+    return Err(Failure(message: 'Message.parse | Is not yet implementd', stackTrace: StackTrace.current));
     return Ok(
       (FieldKind.string, FieldSize(len: bytes.length), FieldData(bytes)),
     );
