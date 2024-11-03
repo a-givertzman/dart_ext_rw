@@ -163,7 +163,7 @@ class ApiRequest {
   ///
   Future<Result<List<int>, Failure>> _read(Socket socket) async {
     try {
-      List<int> result = [];
+      Result<List<int>, Failure> result = Err(Failure(message: '._read | Result is not assigned'));
       final subscription = socket
         .timeout(
           _timeout,
@@ -173,21 +173,23 @@ class ApiRequest {
         )
         .listen((bytes) {
           Message message = Message(kind: FieldKind.string, size: FieldSize(), data: FieldData([]));
-          result.addAll(
-            message.parse(bytes),
-          )
+          result = switch (message.parse(bytes)) {
+            // (FieldKind kind, FieldSize size, FieldData data).
+            Ok(:final value) => Ok(value.$3.bytes),
+            Err(:final error) => Err(error),
+          };
           // message.addAll(bytes);
         });
       await subscription.asFuture();
       // _log.fine('._read | socket message: $message');
       _closeSocket(socket);
-      return Ok(result);
+      return result;
     } catch (error) {
-      _log.warning('._read | socket error: $error');
+      _log.warning('._read | Socket error: $error');
       await _closeSocket(socket);
       return Err(
         Failure.connection(
-          message: '._read | socket error: $error', 
+          message: '._read | Socket error: $error', 
           stackTrace: StackTrace.current,
         ),
       );
@@ -200,10 +202,10 @@ class ApiRequest {
       socket.add(bytes);
       return Future.value(const Ok(true));
     } catch (error) {
-      _log.warning('._send | web socket error: $error');
+      _log.warning('._send | Web socket error: $error');
       return Err(
         Failure.connection(
-          message: '._send | web socket error: $error', 
+          message: '._send | Web socket error: $error', 
           stackTrace: StackTrace.current,
         ),
       );
