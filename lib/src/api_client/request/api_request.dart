@@ -163,7 +163,7 @@ class ApiRequest {
   ///
   Future<Result<List<int>, Failure>> _read(Socket socket) async {
     try {
-      Result<List<int>, Failure> result = Err(Failure(message: '._read | Result is not assigned'));
+      Result<List<int>, Failure> result = Err(Failure(message: '._read | Result is not assigned', stackTrace: StackTrace.current));
       final subscription = socket
         .timeout(
           _timeout,
