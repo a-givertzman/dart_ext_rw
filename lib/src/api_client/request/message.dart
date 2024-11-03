@@ -33,6 +33,9 @@
 //!     - .., ...
 
 import 'dart:typed_data';
+
+import 'package:hmi_core/hmi_core_failure.dart';
+import 'package:hmi_core/hmi_core_result_new.dart';
 ///
 ///
 class FieldSyn {
@@ -122,5 +125,11 @@ class Message {
   List<int> bytes() {
     return [syn.syn, kind.kind, ...size.size(data.bytes.length), ...data.bytes];
   }
-
+  ///
+  /// Returns ([FieldKind], [FieldSize], [FieldData]) if parsed
+  Result<(FieldKind, FieldSize, FieldData), Failure> parse(List<int> bytes) {
+    return Ok(
+      (FieldKind.string, FieldSize(len: bytes.length), FieldData(bytes)),
+    );
+  }
 }

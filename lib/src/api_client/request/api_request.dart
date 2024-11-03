@@ -163,7 +163,7 @@ class ApiRequest {
   ///
   Future<Result<List<int>, Failure>> _read(Socket socket) async {
     try {
-      Message message = Message(kind: FieldKind.string, size: FieldSize(), data: FieldData([]));
+      List<int> result = [];
       final subscription = socket
         .timeout(
           _timeout,
@@ -171,13 +171,17 @@ class ApiRequest {
             sink.close();
           },
         )
-        .listen((event) {
-          message.addAll(event);
+        .listen((bytes) {
+          Message message = Message(kind: FieldKind.string, size: FieldSize(), data: FieldData([]));
+          result.addAll(
+            message.parse(bytes),
+          )
+          // message.addAll(bytes);
         });
       await subscription.asFuture();
       // _log.fine('._read | socket message: $message');
       _closeSocket(socket);
-      return Ok(message);
+      return Ok(result);
     } catch (error) {
       _log.warning('._read | socket error: $error');
       await _closeSocket(socket);
