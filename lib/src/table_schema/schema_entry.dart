@@ -4,7 +4,6 @@ import 'package:ext_rw/src/table_schema/schema_entry_abstract.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:uuid/uuid.dart';
-
 ///
 /// Abstruction on the SQL table single row
 class SchemaEntry implements SchemaEntryAbstract {
