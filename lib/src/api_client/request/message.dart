@@ -72,13 +72,19 @@ enum FieldKind {
 ///
 ///
 class FieldSize {
-  final int _size;
+  final int _len;
   ///
   /// Returns FieldSize new instance
-  FieldSize(this._size);
+  /// - By default field `Size` is 4 bytes
+  /// - [] length of the field `Size` in the bytes
+  FieldSize({int len = 4}):
+    _len = len;
   ///
-  /// Returns size as bytes
-  Uint8List get size => Uint8List(4)..buffer.asByteData().setInt32(0, _size, Endian.big);
+  /// Returns [length] as bytes of specified [len]
+  Uint8List size(int length) => Uint8List(_len)..buffer.asByteData().setInt32(0, length, Endian.big);
+  ///
+  /// Returns length of the field `Size` in the bytes
+  int get len => _len;
 }
 ///
 ///
@@ -91,21 +97,30 @@ class FieldData {
 ///
 ///
 class Message {
-  final FieldSyn fieldSyn;
-  final FieldKind fieldkind;
-  final FieldSize fieldSize;
-  final FieldData fieldData;
+  final FieldSyn syn;
+  final FieldKind kind;
+  final FieldSize size;
+  final FieldData data;
   ///
-  ///
+  /// # Returns Message instance
+  /// - **in case of Sending**
+  ///   - [kind] - Kind of sending message
+  ///   - [size] - Size in bytes of the data
+  ///   - [data] - Sending data
+  /// - **in case of Receiving**
+  ///   - [kind] - Not required, ignored if specified
+  ///   - [size] - The length of the data will be used to read data from the socket
+  ///   - [data] - Data of length specified in [size] will be fetched from the socket
   Message({
-    this.fieldSyn = const FieldSyn(),
-    required this.fieldkind,
-    required this.fieldSize,
-    required this.fieldData,
+    this.syn = const FieldSyn(),
+    required this.kind,
+    required this.size,
+    required this.data,
   });
   ///
   /// Returns message bytes built of the specified fields
   List<int> bytes() {
-    return [fieldSyn.syn, fieldkind.kind, ...fieldSize.size, ...fieldData.bytes];
+    return [syn.syn, kind.kind, ...size.size(data.bytes.length), ...data.bytes];
   }
+
 }

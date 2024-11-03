@@ -163,7 +163,7 @@ class ApiRequest {
   ///
   Future<Result<List<int>, Failure>> _read(Socket socket) async {
     try {
-      List<int> message = [];
+      Message message = Message(kind: FieldKind.string, size: FieldSize(), data: FieldData([]));
       final subscription = socket
         .timeout(
           _timeout,
@@ -208,7 +208,7 @@ class ApiRequest {
   ///
   /// Sends bytes over raw TCP socket
   Future<Result<bool, Failure>> _send(Socket socket, List<int> bytes) async {
-    final message = Message(fieldkind: FieldKind.string, fieldSize: FieldSize(bytes.length), fieldData: FieldData(bytes));
+    final message = Message(kind: FieldKind.string, size: FieldSize(), data: FieldData(bytes));
     try {
       socket.add(message.bytes());
       return Future.value(const Ok(true));
