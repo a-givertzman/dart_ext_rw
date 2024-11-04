@@ -2,10 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:ext_rw/src/api_client/message/field_data.dart';
+import 'package:ext_rw/src/api_client/message/field_kind.dart';
+import 'package:ext_rw/src/api_client/message/field_size.dart';
+import 'package:ext_rw/src/api_client/message/field_syn.dart';
+import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:ext_rw/src/api_client/address/api_address.dart';
 import 'package:ext_rw/src/api_client/reply/api_reply.dart';
-import 'package:ext_rw/src/api_client/request/message.dart';
+import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -172,7 +177,11 @@ class ApiRequest {
           },
         )
         .listen((bytes) {
-          Message message = Message(kind: FieldKind.string, size: FieldSize(), data: FieldData([]));
+          MessageParse message = FieldData(
+            field: FieldKind.string,
+            size: FieldSize(),
+            data: FieldData([]),
+          );
           result = switch (message.parse(bytes)) {
             // (FieldKind kind, FieldSize size, FieldData data).
             Ok(:final value) => Ok(value.$3.bytes),
@@ -214,9 +223,13 @@ class ApiRequest {
   ///
   /// Sends bytes over raw TCP socket
   Future<Result<bool, Failure>> _send(Socket socket, List<int> bytes) async {
-    final message = Message(kind: FieldKind.string, size: FieldSize(), data: FieldData(bytes));
+    final message = MessageBuild(
+      kind: FieldKind.string,
+      size: FieldSize(),
+      data: FieldData([]),
+    );
     try {
-      socket.add(message.bytes());
+      socket.add(message.build(bytes));
       return Future.value(const Ok(true));
     } catch (error) {
       _log.warning('._send | socket error: $error');
