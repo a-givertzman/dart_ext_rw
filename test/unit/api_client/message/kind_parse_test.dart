@@ -1,4 +1,5 @@
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
+import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:flutter/foundation.dart';
@@ -39,6 +40,7 @@ void main() {
         (05,  keepGo, Some(null), [syn,  40,  55, 55, 56], Some(FieldKind.string), [55, 55, 56]),
         (06,  keepGo, Some(null), [ 61,  62,  63, 64, 65], Some(FieldKind.string), [61, 62,  63, 64, 65]),
       ];
+      final targetKind = FieldKind.string;
       for (final (step, restart, _, bytes, target, targetBytes) in testData) {
         if (restart) {
           fieldKind = ParseKind(
@@ -47,17 +49,30 @@ void main() {
           );
         }
         // fieldSyn.add(syn);
-        final (result, resultBytes) = fieldKind.parse(bytes);
-        expect(
-          result,
-          target,
-          reason: 'step: $step \n result: $result \n target: $target',
-        );
-        expect(
-          listEquals(resultBytes, targetBytes),
-          true,
-          reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
-        );
+        switch (fieldKind.parse(bytes)) {
+          case Some<(FieldKind, List<int>)>(value: (FieldKind kind, Bytes resultBytes)):
+            expect(
+              target,
+              isA<Some>(),
+              reason: 'step: $step \n result: None() \n target: $target',
+            );
+            expect(
+              kind,
+              targetKind,
+              reason: 'step: $step \n result: $kind \n target: $targetKind',
+            );
+            expect(
+              listEquals(resultBytes, targetBytes),
+              true,
+              reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
+            );
+          case None():
+            expect(
+              target,
+              isA<None>(),
+              reason: 'step: $step \n result: None() \n target: $target',
+            );
+        }
       }
     });
   });

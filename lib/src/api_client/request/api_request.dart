@@ -274,6 +274,7 @@ class ApiRequest {
   /// Sends bytes over raw TCP socket
   Future<Result<bool, Failure>> _send(Socket socket, List<int> bytes) async {
     final message = MessageBuild(
+      syn: FieldSyn.def(),
       kind: FieldKind.string,
       size: FieldSize(),
       data: FieldData([]),
