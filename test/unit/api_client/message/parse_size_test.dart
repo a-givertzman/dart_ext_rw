@@ -1,4 +1,6 @@
+import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
+import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/parse_size.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
@@ -45,17 +47,25 @@ void main() {
             ),
           );
         }
-        final (result, resultBytes) = sizeParse.parse(bytes);
-        expect(
-          result,
-          target,
-          reason: 'step: $step \n result: $result \n target: $target',
-        );
-        expect(
-          listEquals(resultBytes, targetBytes),
-          true,
-          reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
-        );
+        switch (sizeParse.parse(bytes)) {
+          case Some<(FieldKind, FieldSize, List<int>)>(value: (FieldKind kind, FieldSize size, Bytes resultBytes)):
+            expect(
+              isA<Some>(),
+              target,
+              reason: 'step: $step \n result: ${isA<Some>()} \n target: $target',
+            );
+            expect(
+              listEquals(resultBytes, targetBytes),
+              true,
+              reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
+            );
+          case None():
+            expect(
+              isA<None>(),
+              target,
+              reason: 'step: $step \n result: ${isA<None>()} \n target: $target',
+            );
+        }
       }
     });
   });

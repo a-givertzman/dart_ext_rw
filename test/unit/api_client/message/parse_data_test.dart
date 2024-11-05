@@ -58,6 +58,11 @@ void main() {
         switch (dataParse.parse(bytes)) {
           case Some(value: (FieldKind kind, FieldSize size, List<int> resultBytes)):
             expect(
+              isA<Some>(),
+              target,
+              reason: 'step: $step \n result: Some() \n target: $target',
+            );
+            expect(
               kind,
               targetKind,
               reason: 'step: $step \n result: $kind \n target: $targetBytes',
@@ -74,8 +79,8 @@ void main() {
             );
           case None():
             expect(
-              target,
               isA<None>(),
+              target,
               reason: 'step: $step \n result: None() \n target: $target',
             );
         }

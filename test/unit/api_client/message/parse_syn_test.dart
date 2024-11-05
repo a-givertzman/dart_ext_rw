@@ -1,3 +1,4 @@
+import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,26 +26,25 @@ void main() {
         if (restart) {
           fieldSyn = ParseSyn.def();
         }
-        final (result, resultBytes) = fieldSyn.parse(bytes);
-        switch (target) {
-          case Some():
+        switch (fieldSyn.parse(bytes)) {
+          case Some<List<int>>(value: Bytes resultBytes):
             expect(
-              result,
               isA<Some>(),
-              reason: 'step: $step \n result: $result \n target: $target',
+              target,
+              reason: 'step: $step \n result: ${isA<Some>()} \n target: $target',
+            );
+            expect(
+              listEquals(resultBytes, targetBytes),
+              true,
+              reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
             );
           case None():
             expect(
-              result,
               isA<None>(),
-              reason: 'step: $step \n result: $result \n target: $target',
+              target,
+              reason: 'step: $step \n result: ${isA<None>()} \n target: $target',
             );
         }
-        expect(
-          listEquals(resultBytes, targetBytes),
-          true,
-          reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
-        );
       }
     });
   });
