@@ -1,6 +1,6 @@
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
-import 'package:ext_rw/src/api_client/message/kind_parse.dart';
-import 'package:ext_rw/src/api_client/message/syn_parse.dart';
+import 'package:ext_rw/src/api_client/message/parse_kind.dart';
+import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hmi_core/hmi_core_option.dart';
@@ -23,13 +23,13 @@ const keepGo = false;
 //   }
 // }
 ///
-/// Testing [KindParse].parse
+/// Testing [ParseKind].parse
 void main() {
   group('FieldKind.parse', () {
     test('.parse()', () async {
       // final fieldSyn = FakeFiledSyn(None());
-      KindParse fieldKind = KindParse(
-        field: SynParse.def(),
+      ParseKind fieldKind = ParseKind(
+        field: ParseSyn.def(),
       );
       final testData = [
         (01,  keepGo, Some(null), [ 11,  12, syn, 40, 14], Some(FieldKind.string), [14]),
@@ -41,8 +41,8 @@ void main() {
       ];
       for (final (step, restart, _, bytes, target, targetBytes) in testData) {
         if (restart) {
-          fieldKind = KindParse(
-            field: SynParse.def(),
+          fieldKind = ParseKind(
+            field: ParseSyn.def(),
             // field: fieldSyn,
           );
         }

@@ -2,11 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:ext_rw/src/api_client/message/data_parse.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/field_syn.dart';
+import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
+import 'package:ext_rw/src/api_client/message/parse_size.dart';
+import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:ext_rw/src/api_client/address/api_address.dart';
 import 'package:ext_rw/src/api_client/reply/api_reply.dart';
@@ -14,7 +18,8 @@ import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:hmi_core/hmi_core_result_new.dart';
+import 'package:hmi_core/hmi_core_option.dart';
+import 'package:hmi_core/hmi_core_result.dart';
 // import 'package:web_socket_channel/web_socket_channel.dart';
 // import 'package:web_socket_channel/io.dart';
 
@@ -166,7 +171,61 @@ class ApiRequest {
     }
   }
   ///
+  Result<List<int>, Failure> _parse(DataParse message, Bytes bytes) {
+          int count = 0;
+          while (count++ < 3) {
+            switch (message.parse(bytes)) {
+              case Some(value: (FieldKind kind, FieldSize _, Bytes data)):
+                switch (kind) {
+                  case FieldKind.any:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.empty:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.bytes:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.bool:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.uint16:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.uint32:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.uint64:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.int16:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.int32:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.int64:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.f32:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.f64:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.string:
+                    return Ok(data);
+                  case FieldKind.timestamp:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                  case FieldKind.duration:
+                    _log.debug('._read | Socket message of kind "$kind" - is not supported, was skipped');
+                }
+              case None():
+                final logBytes = bytes.length > 24 ? '${bytes.sublist(0, 24)}...' : bytes;
+                _log.debug('._read | Socket message not parsed: $logBytes');
+            }
+          }
+          return Err(Failure(message: 'ApiRequest._read | No valid messages in the socket', stackTrace: StackTrace.current));    
+  }
+  
+  ///
   Future<Result<List<int>, Failure>> _read(Socket socket) async {
+    DataParse message = DataParse(
+      field: ParseSize(
+        size: FieldSize(),
+        field: ParseKind(
+          field: ParseSyn.def(),
+        ),
+      ),
+    );
     try {
       Result<List<int>, Failure> result = Err(Failure(message: '._read | Result is not assigned', stackTrace: StackTrace.current));
       final subscription = socket
@@ -177,16 +236,7 @@ class ApiRequest {
           },
         )
         .listen((bytes) {
-          MessageParse message = FieldData(
-            field: FieldKind.string,
-            size: FieldSize(),
-            data: FieldData([]),
-          );
-          result = switch (message.parse(bytes)) {
-            // (FieldKind kind, FieldSize size, FieldData data).
-            Ok(:final value) => Ok(value.$3.bytes),
-            Err(:final error) => Err(error),
-          };
+          result = _parse(message, bytes);
           // message.addAll(bytes);
         });
       await subscription.asFuture();

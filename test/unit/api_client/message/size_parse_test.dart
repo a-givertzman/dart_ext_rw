@@ -1,7 +1,7 @@
 import 'package:ext_rw/src/api_client/message/field_size.dart';
-import 'package:ext_rw/src/api_client/message/kind_parse.dart';
-import 'package:ext_rw/src/api_client/message/size_parse.dart';
-import 'package:ext_rw/src/api_client/message/syn_parse.dart';
+import 'package:ext_rw/src/api_client/message/parse_kind.dart';
+import 'package:ext_rw/src/api_client/message/parse_size.dart';
+import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hmi_core/hmi_core_option.dart';
@@ -11,14 +11,14 @@ const int syn = 22;
 const restart = true;
 const keepGo = false;
 ///
-/// Testing [SizeParse].parse
+/// Testing [ParseSize].parse
 void main() {
   group('SizeParse.parse', () {
     test('.parse()', () async {
-      SizeParse sizeParse = SizeParse(
+      ParseSize sizeParse = ParseSize(
         size: FieldSize(),
-        field: KindParse(
-          field: SynParse.def(),
+        field: ParseKind(
+          field: ParseSyn.def(),
         ),
       );
       final testData = [
@@ -38,10 +38,10 @@ void main() {
       ];
       for (final (step, restart, _, bytes, target, targetBytes) in testData) {
         if (restart) {
-          sizeParse = SizeParse(
+          sizeParse = ParseSize(
             size: FieldSize(),
-            field: KindParse(
-              field: SynParse.def(),
+            field: ParseKind(
+              field: ParseSyn.def(),
             ),
           );
         }

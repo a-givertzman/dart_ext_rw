@@ -1,4 +1,4 @@
-import 'package:ext_rw/src/api_client/message/syn_parse.dart';
+import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hmi_core/hmi_core_option.dart';
@@ -8,11 +8,11 @@ const int syn = 22;
 const restart = true;
 const keepGo = false;
 ///
-/// Testing [SynParse].parse
+/// Testing [ParseSyn].parse
 void main() {
   group('FieldSyn.parse', () {
     test('.parse()', () async {
-      SynParse fieldSyn = SynParse.def();
+      ParseSyn fieldSyn = ParseSyn.def();
       final testData = [
         (01,  keepGo, [ 11,  12, syn, 13, 14], Some(null), [13, 14]),
         (02,  keepGo, [ 21,  23,  24, 25, 26], Some(null), [21,  23,  24, 25, 26]),
@@ -23,7 +23,7 @@ void main() {
       ];
       for (final (step, restart, bytes, target, targetBytes) in testData) {
         if (restart) {
-          fieldSyn = SynParse.def();
+          fieldSyn = ParseSyn.def();
         }
         final (result, resultBytes) = fieldSyn.parse(bytes);
         switch (target) {

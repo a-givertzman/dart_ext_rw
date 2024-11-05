@@ -1,10 +1,12 @@
 import 'package:ext_rw/src/api_client/message/data_parse.dart';
+import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
-import 'package:ext_rw/src/api_client/message/kind_parse.dart';
-import 'package:ext_rw/src/api_client/message/size_parse.dart';
-import 'package:ext_rw/src/api_client/message/syn_parse.dart';
+import 'package:ext_rw/src/api_client/message/parse_kind.dart';
+import 'package:ext_rw/src/api_client/message/parse_size.dart';
+import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 ///
 /// setup constants
@@ -14,13 +16,14 @@ const keepGo = false;
 ///
 /// Testing [DataParse].parse
 void main() {
+  Log.initialize(level: LogLevel.all);
   group('DataParse.parse', () {
     test('.parse()', () async {
       DataParse dataParse = DataParse(
-        field: SizeParse(
+        field: ParseSize(
           size: FieldSize(),
-          field: KindParse(
-            field: SynParse.def(),
+          field: ParseKind(
+            field: ParseSyn.def(),
           ),
         ),
       );
@@ -39,28 +42,48 @@ void main() {
         (12,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
         (13,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
       ];
+      final targetKind = FieldKind.string;
       for (final (step, restart, _, bytes, target, targetBytes) in testData) {
         if (restart) {
           dataParse = DataParse(
-            field: SizeParse(
+            field: ParseSize(
               size: FieldSize(),
-              field: KindParse(
-                field: SynParse.def(),
+              field: ParseKind(
+                field: ParseSyn.def(),
               ),
             ),
           );
         }
-        final (result, resultBytes) = dataParse.parse(bytes);
-        expect(
-          result,
-          target,
-          reason: 'step: $step \n result: $result \n target: $target',
-        );
-        expect(
-          listEquals(resultBytes, targetBytes),
-          true,
-          reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
-        );
+        // final Option(FieldKind kind, size, resultBytes) = dataParse.parse(bytes);
+        switch (dataParse.parse(bytes)) {
+          case Some(value: (FieldKind kind, FieldSize size, List<int> resultBytes)):
+            expect(
+              kind,
+              targetKind,
+              reason: 'step: $step \n result: $kind \n target: $targetBytes',
+            );
+            expect(
+              size,
+              targetBytes.length,
+              reason: 'step: $step \n result: $size \n target: ${targetBytes.length}',
+            );
+            expect(
+              listEquals(resultBytes, targetBytes),
+              true,
+              reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
+            );
+          case None():
+            expect(
+              target,
+              isA<None>(),
+              reason: 'step: $step \n result: None() \n target: $target',
+            );
+        }
+        // expect(
+        //   ,
+        //   target,
+        //   reason: 'step: $step \n result: $result \n target: $target',
+        // );
       }
     });
   });

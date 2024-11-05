@@ -1,6 +1,3 @@
-import 'package:hmi_core/hmi_core_failure.dart';
-import 'package:hmi_core/hmi_core_option.dart';
-import 'package:hmi_core/hmi_core_result_new.dart';
 ///
 /// # Messages received over socket.
 /// 
@@ -34,16 +31,9 @@ import 'package:hmi_core/hmi_core_result_new.dart';
 ///     - 48, Timestamp
 ///     - 49, Duration
 ///     - .., ...
-abstract class MessageParse<T> {
-  // final List<int> _result = [];
-  // final FieldSyn syn;
-  // final FieldKind kind;
-  // final FieldSize size;
-  // final FieldData data;
-  // int _start = 0;
-  // int _end = 0;
+abstract class MessageParse<I, T> {
   ///
-  /// # Returns MessageParse instance
+  /// # Returns MessageParse result
   /// - **in case of Sending**
   ///   - [kind] - Kind of sending message
   ///   - [size] - Size in bytes of the data
@@ -54,13 +44,8 @@ abstract class MessageParse<T> {
   ///   - [data] - Data of length specified in [size] will be fetched from the socket
   ///
   /// Returns T if parsed
-  (Option<T>, List<int>) parse(List<int> bytes);
+  T parse(I input);
 }
-// ///
-// ///
-// enum _State {
-//   start,
-//   kind,
-//   size,
-//   data,
-// }
+///
+/// Input bytes type
+typedef Bytes = List<int>;

@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:ext_rw/ext_rw.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hmi_core/hmi_core_result_new.dart';
+import 'package:hmi_core/hmi_core_result.dart';
 
 class FakeApiQueryType implements ApiQueryType {
   final bool _valid;
