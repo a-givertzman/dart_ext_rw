@@ -29,8 +29,8 @@ void main() {
         switch (fieldSyn.parse(bytes)) {
           case Some<List<int>>(value: Bytes resultBytes):
             expect(
-              isA<Some>(),
               target,
+              isA<Some>(),
               reason: 'step: $step \n result: ${isA<Some>()} \n target: $target',
             );
             expect(
@@ -40,8 +40,8 @@ void main() {
             );
           case None():
             expect(
-              isA<None>(),
               target,
+              isA<None>(),
               reason: 'step: $step \n result: ${isA<None>()} \n target: $target',
             );
         }

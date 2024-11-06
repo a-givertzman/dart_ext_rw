@@ -23,7 +23,7 @@ void main() {
           field: ParseSyn.def(),
         ),
       );
-      final testData = [
+      final List<(int, bool, Some<Null>, List<int>, Option<int>, List<dynamic>)> testData = [
         (01,  keepGo, Some(null), [ 11,  12, syn, 40, 00], None( ), []),
         (02,  keepGo, Some(null), [ 00,  00,  02, 25, 26], Some(2), [25, 26]),
         (03, restart, Some(null), [ 31, syn,  40, 00, 00], None( ), []),
@@ -48,11 +48,16 @@ void main() {
           );
         }
         switch (sizeParse.parse(bytes)) {
-          case Some<(FieldKind, FieldSize, List<int>)>(value: (FieldKind kind, FieldSize size, Bytes resultBytes)):
+          case Some<(FieldKind, FieldSize, List<int>)>(value: (FieldKind _, FieldSize size, Bytes resultBytes)):
             expect(
-              isA<Some>(),
               target,
+              isA<Some>(),
               reason: 'step: $step \n result: ${isA<Some>()} \n target: $target',
+            );
+            expect(
+              size.len,
+              targetBytes.length,
+              reason: 'step: $step \n result: ${size.len} \n target: ${targetBytes.length}',
             );
             expect(
               listEquals(resultBytes, targetBytes),
@@ -61,8 +66,8 @@ void main() {
             );
           case None():
             expect(
-              isA<None>(),
               target,
+              isA<None>(),
               reason: 'step: $step \n result: ${isA<None>()} \n target: $target',
             );
         }
