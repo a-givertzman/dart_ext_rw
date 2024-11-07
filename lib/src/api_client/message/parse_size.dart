@@ -25,7 +25,6 @@ class ParseSize implements MessageParse<List<int>, Option<(FieldKind, FieldSize,
   Option<(FieldKind, FieldSize, List<int>)> parse(List<int> bytes) {
     final size_ = _size;
     if (size_ == null) {
-      _buf.clear();
       switch (_field.parse([..._buf, ...bytes])) {
         case Some(value: (FieldKind kind, List<int> input)):
           _kind = kind;
@@ -33,6 +32,7 @@ class ParseSize implements MessageParse<List<int>, Option<(FieldKind, FieldSize,
             return switch (_confSize.from(input.sublist(0, _confSize.len))) {
               Ok(value:final size) => () {
                 _size = size;
+                _buf.clear();
                 return Some((kind, FieldSize(len: size), input.sublist(_confSize.len)));
               }() as Option<(FieldKind, FieldSize, List<int>)>,
               Err() => () {

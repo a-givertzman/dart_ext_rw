@@ -32,7 +32,7 @@ void main() {
       ParseKind fieldKind = ParseKind(
         field: ParseSyn.def(),
       );
-      final List<(int, bool, Some<Null>, List<int>, Option<FieldKind>, List<dynamic>)> testData = [
+      final List<(int, bool, Some<Null>, List<int>, Option<FieldKind>, List<int>)> testData = [
         (01,  keepGo, Some(null), [ 11,  12, syn, 40, 14], Some(FieldKind.string), [14]),
         (02,  keepGo, Some(null), [ 21,  23,  24, 25, 26], Some(FieldKind.string), [21, 23,  24, 25, 26]),
         (03, restart, Some(null), [ 31, syn,  17, 34, 35], Some(FieldKind.uint32), [34, 35]),

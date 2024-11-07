@@ -23,7 +23,7 @@ void main() {
           field: ParseSyn.def(),
         ),
       );
-      final List<(int, bool, Some<Null>, List<int>, Option<int>, List<dynamic>)> testData = [
+      final List<(int, bool, Some<Null>, List<int>, Option<int>, List<int>)> testData = [
         (01,  keepGo, Some(null), [ 11,  12, syn, 40, 00], None( ), []),
         (02,  keepGo, Some(null), [ 00,  00,  02, 25, 26], Some(2), [25, 26]),
         (03, restart, Some(null), [ 31, syn,  40, 00, 00], None( ), []),
@@ -56,7 +56,7 @@ void main() {
             );
             expect(
               size.len,
-              targetBytes.length,
+              target.unwrap(),
               reason: 'step: $step \n result: ${size.len} \n target: ${targetBytes.length}',
             );
             expect(
