@@ -7,7 +7,7 @@ import 'package:hmi_core/hmi_core_option.dart';
 class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> {
   final MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> _field;
   final Bytes _buf = [];
-  int? _size;
+  _KindAndSize? _kindSize;
   ///
   ///
   ParseData({
@@ -18,11 +18,11 @@ class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
   //
   @override
   Option<(FieldKind, FieldSize, Bytes)> parse(Bytes bytes) {
-    final size_ = _size;
-    if (size_ == null) {
+    final kindSize = _kindSize;
+    if (kindSize == null) {
       return switch (_field.parse(bytes)) {
         Some(value: (FieldKind kind, FieldSize size, Bytes input)) => () {
-          _size = size.len;
+          _kindSize = _KindAndSize(kind, size.len);
           if (input.length >= size.len) {
             _buf.addAll(input.sublist(0, size.len)); 
             return Some((kind, size, _buf));
@@ -38,13 +38,13 @@ class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
       };
     } else {
       return switch (_field.parse(bytes)) {
-        Some(value: (FieldKind kind, FieldSize size, Bytes input)) => () {
-          if ((_buf.length + input.length) >= size_) {
-            if (_buf.length < size_) {
-              final remainder = size_ - _buf.length;
+        Some(value: (FieldKind _, FieldSize _, Bytes input)) => () {
+          if ((_buf.length + input.length) >= kindSize.size) {
+            if (_buf.length < kindSize.size) {
+              final remainder = kindSize.size - _buf.length;
               _buf.addAll(input.sublist(0, remainder));
             }
-            return Some((kind, size, _buf));
+            return Some((kindSize.kind, kindSize.size, _buf));
           } else {
             _buf.addAll(input);
             return None();
@@ -56,4 +56,11 @@ class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
       };
     }
   }
+}
+///
+/// Just contains received kind & size
+class _KindAndSize {
+  final FieldKind kind;
+  final int size;
+  _KindAndSize(this.kind, this.size);
 }
