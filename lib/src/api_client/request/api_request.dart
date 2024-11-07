@@ -251,16 +251,6 @@ class ApiRequest {
       }
       _closeSocket(socket);
       return Err(Failure(message: 'ApiRequest._read | No valid messages in the socket', stackTrace: StackTrace.current));    
-        // .listen((bytes) {
-        //   if (maxChunks-- > 0) {
-        //     result = _parse(message, bytes);
-        //     return;
-        //   }
-        //   message = resetParseMessage();
-        //   maxChunks = 10;
-        //   result = Err(Failure(message: 'ApiRequest._read | No valid messages in the socket', stackTrace: StackTrace.current));    
-        // });
-      // await subscription.asFuture();
       // _log.fine('._read | socket message: $message');
     } catch (error) {
       _log.warning('._read | Socket error: $error');
