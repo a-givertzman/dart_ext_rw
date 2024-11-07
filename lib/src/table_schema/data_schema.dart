@@ -1,6 +1,5 @@
 import 'package:ext_rw/ext_rw.dart';
-import 'package:hmi_core/hmi_core_failure.dart';
-import 'package:hmi_core/hmi_core_result_new.dart';
+import 'package:hmi_core/hmi_core.dart';
 
 ///
 /// A collection of the SchameEntry, 

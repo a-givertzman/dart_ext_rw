@@ -5,10 +5,8 @@ import 'dart:io';
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:ext_rw/src/api_client/address/api_address.dart';
 import 'package:ext_rw/src/api_client/reply/api_reply.dart';
-import 'package:hmi_core/hmi_core_failure.dart';
-import 'package:hmi_core/hmi_core_log.dart';
+import 'package:hmi_core/hmi_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:hmi_core/hmi_core_result_new.dart';
 // import 'package:web_socket_channel/web_socket_channel.dart';
 // import 'package:web_socket_channel/io.dart';
 

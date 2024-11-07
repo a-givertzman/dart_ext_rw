@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:ext_rw/ext_rw.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hmi_core/hmi_core_result_new.dart';
+import 'package:hmi_core/hmi_core.dart';
 
 class FakeApiQueryType implements ApiQueryType {
   final bool _valid;
@@ -70,7 +69,8 @@ void main() {
           reason: 'valid api request should return Ok as Result',
         );
         if (result case Ok(value: final reply)) {
-          final replyAsJson = '{"authToken": "${reply.authToken}", "id": "${reply.id}", "query": "${reply.sql}", "data": ${json.encode(reply.data)}}';
+          final replyAsJson =
+              '{"authToken": "${reply.authToken}", "id": "${reply.id}", "query": "${reply.sql}", "data": ${json.encode(reply.data)}}';
           expect(
             replyAsJson,
             query,
@@ -79,6 +79,7 @@ void main() {
         }
       }
     });
+
     ///
     test('.fetch() with invalid query', () async {
       final queryList = [
