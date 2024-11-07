@@ -1,4 +1,4 @@
-import 'package:ext_rw/src/api_client/message/data_parse.dart';
+import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/parse_kind.dart';
