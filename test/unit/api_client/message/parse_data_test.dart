@@ -1,3 +1,4 @@
+import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
@@ -17,7 +18,8 @@ const keepGo = false;
 /// Testing [ParseData].parse
 void main() {
   Log.initialize(level: LogLevel.all);
-  group('DataParse.parse', () {
+  final _log = Log('Test:ParseData');
+  group('ParseData.parse', () {
     test('.parse()', () async {
       ParseData dataParse = ParseData(
         field: ParseSize(
@@ -27,23 +29,26 @@ void main() {
           ),
         ),
       );
-      final List<(int, bool, Some<Null>, List<int>, Option<int>, List<int>)> testData = [
-        (01,  keepGo, Some(null), [ 11,  12, syn, 40, 00], None(   ), []),
-        (02,  keepGo, Some(null), [ 00,  00,  02, 25, 26], Some(  2), [25, 26]),
-        (03, restart, Some(null), [ 31, syn,  40, 00, 00], None(   ), []),
-        (04, restart, Some(null), [ 00,  03,  44, 45, 46], None(   ), []),
-        (05,  keepGo, Some(null), [syn,  40,  00, 00, 00], None(   ), []),
-        (06,  keepGo, Some(null), [ 04,  62,  63, 64, 65], Some(  4), [62,  63, 64, 65]),
-        (07, restart, Some(null), [syn,  40,  00, 00, 00], None(   ), []),
-        (08,  keepGo, Some(null), [ 10,  62,  63, 64, 65], Some( 10), [62,  63, 64, 65]),
-        (09,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some( 10), [66,  67,  68, 69, 70]),
-        (10, restart, Some(null), [syn,  40,  00, 00, 01], None(   ), []),
-        (11,  keepGo, Some(null), [ 02,  62,  63, 64, 65], Some(258), [62,  63, 64, 65]),
-        (12,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
-        (13,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
+      final List<(int, bool, List<int>, Option<(FieldKind, int)>, List<int>)> testData = [
+        (01,  keepGo, [ 11,  12, syn, 40, 00], None(                       ), []),
+        (02,  keepGo, [ 00,  00,  02, 25, 26], Some((FieldKind.string,   2)), [25, 26]),
+        (03, restart, [ 31, syn,  40, 00, 00], None(                       ), []),
+        (04, restart, [ 00,  03,  44, 45, 46], None(                       ), []),
+        (05,  keepGo, [syn,  40,  00, 00, 00], None(                       ), []),
+        (06,  keepGo, [ 04,  62,  63, 64, 65], Some((FieldKind.string,   4)), [62,  63, 64, 65]),
+        (07, restart, [syn,  40,  00, 00, 00], None(                       ), []),
+        (08,  keepGo, [ 10,  62,  63, 64, 65], None(                       ), []),
+        (09,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
+        (09,  keepGo, [ 71                  ], Some((FieldKind.string,  10)), [62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
+        (10, restart, [syn,  40,  00, 00, 01], None(                       ), []),
+        (11,  keepGo, [ 02,  62,  63, 64, 65], None(                       ), []),
+        (12,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
+        (13,  keepGo, [ 71,  72,  73, 74, 75], None(                       ), []),
+        (14,  keepGo, [for(var i=76; i<=316; i+=1) i], None(                ), []),
+        (15,  keepGo, [317, 318, 319        ], Some((FieldKind.string,  258)), [for(var i=62; i<=319; i+=1) i]),
       ];
-      final targetKind = FieldKind.string;
-      for (final (step, restart, _, bytes, target, targetBytes) in testData) {
+      for (final (step, restart, bytes, target, targetBytes) in testData) {
+        _log.debug('.parse | step: $step,  targetBytes.length: ${targetBytes.length}');
         if (restart) {
           dataParse = ParseData(
             field: ParseSize(
@@ -54,9 +59,10 @@ void main() {
             ),
           );
         }
-        // final Option(FieldKind kind, size, resultBytes) = dataParse.parse(bytes);
         switch (dataParse.parse(bytes)) {
-          case Some(value: (FieldKind kind, FieldSize size, List<int> resultBytes)):
+          case Some(value: (FieldKind kind, FieldSize size, Bytes resultBytes)):
+            final targetKind = target.unwrap().$1;
+            final targetSize = target.unwrap().$2;
             expect(
               target,
               isA<Some>(),
@@ -69,7 +75,7 @@ void main() {
             );
             expect(
               size.len,
-              target.unwrap(),
+              targetSize,
               reason: 'step: $step \n result: $size.len \n target: ${target.unwrap()}',
             );
             expect(

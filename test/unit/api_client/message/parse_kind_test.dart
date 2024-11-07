@@ -32,33 +32,38 @@ void main() {
       ParseKind fieldKind = ParseKind(
         field: ParseSyn.def(),
       );
-      final List<(int, bool, Some<Null>, List<int>, Option<FieldKind>, List<int>)> testData = [
-        (01,  keepGo, Some(null), [ 11,  12, syn, 40, 14], Some(FieldKind.string), [14]),
-        (02,  keepGo, Some(null), [ 21,  23,  24, 25, 26], Some(FieldKind.string), [21, 23,  24, 25, 26]),
-        (03, restart, Some(null), [ 31, syn,  17, 34, 35], Some(FieldKind.uint32), [34, 35]),
-        (04, restart, Some(null), [ 41,  43,  44, 45, 46], None(    ), []),
-        (05,  keepGo, Some(null), [syn,  40,  55, 55, 56], Some(FieldKind.string), [55, 55, 56]),
-        (06,  keepGo, Some(null), [ 61,  62,  63, 64, 65], Some(FieldKind.string), [61, 62,  63, 64, 65]),
+      final List<(int, bool, List<int>, Option<FieldKind>, List<int>)> testData = [
+        (01,  keepGo, [ 11,  12, syn, 40, 14], Some(FieldKind.string), [14]),
+        (02,  keepGo, [ 21,  23,  24, 25, 26], Some(FieldKind.string), [21, 23, 24, 25, 26]),
+        (03, restart, [ 31, syn,  17, 34, 35], Some(FieldKind.uint32), [34, 35]),
+        (04, restart, [ 41,  43,  44, 45, 46], None(                ), []),
+        (05,  keepGo, [syn,  40,  55, 55, 56], Some(FieldKind.string), [55, 55, 56]),
+        (06,  keepGo, [ 61,  62,  63, 64, 65], Some(FieldKind.string), [61, 62, 63, 64, 65]),
+        (07, restart, [syn,  18,  00, 00, 00], Some(FieldKind.uint64), [00, 00, 00]),
+        (08,  keepGo, [ 10,  62,  63, 64, 65], Some(FieldKind.uint64), [10, 62, 63, 64, 65]),
+        (09,  keepGo, [ 66,  67,  68, 69, 70], Some(FieldKind.uint64), [66, 67, 68, 69, 70]),
+        (10, restart, [syn,  26,  00, 00, 01], Some(FieldKind.int64 ), [00, 00, 01]),
+        (11,  keepGo, [ 02,  62,  63, 64, 65], Some(FieldKind.int64 ), [02, 62, 63, 64, 65]),
+        (12,  keepGo, [ 66,  67,  68, 69, 70], Some(FieldKind.int64 ), [66, 67, 68, 69, 70]),
+        (13,  keepGo, [ 66,  67,  68, 69, 70], Some(FieldKind.int64 ), [66, 67, 68, 69, 70]),
       ];
-      for (final (step, restart, _, bytes, target, targetBytes) in testData) {
+      for (final (step, restart, bytes, targetKind, targetBytes) in testData) {
         if (restart) {
           fieldKind = ParseKind(
             field: ParseSyn.def(),
-            // field: fieldSyn,
           );
         }
-        // fieldSyn.add(syn);
         switch (fieldKind.parse(bytes)) {
           case Some<(FieldKind, List<int>)>(value: (FieldKind kind, Bytes resultBytes)):
             expect(
-              target,
+              targetKind,
               isA<Some>(),
-              reason: 'step: $step \n result: None() \n target: $target',
+              reason: 'step: $step \n result: Some() \n target: $targetKind',
             );
             expect(
               kind,
-              target.unwrap(),
-              reason: 'step: $step \n result: $kind \n target: ${target.unwrap()}',
+              targetKind.unwrap(),
+              reason: 'step: $step \n result: $kind \n target: ${targetKind.unwrap()}',
             );
             expect(
               listEquals(resultBytes, targetBytes),
@@ -67,9 +72,9 @@ void main() {
             );
           case None():
             expect(
-              target,
-              isA<None>(),
-              reason: 'step: $step \n result: None() \n target: $target',
+              targetKind,
+              None(),
+              reason: 'step: $step \n result: None() \n target: $targetKind',
             );
         }
       }
