@@ -22,8 +22,8 @@ import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 // import 'package:web_socket_channel/web_socket_channel.dart';
 // import 'package:web_socket_channel/io.dart';
-
-
+///
+/// Performs the request to the API server
 class ApiRequest {
   static final _log = const Log('ApiRequest')..level = LogLevel.info;
   final ApiAddress _address;
@@ -33,6 +33,12 @@ class ApiRequest {
   final Duration _connectTimeout;
   final bool _debug;
   ///
+  /// Request to the API server
+  /// - authToken
+  /// - address - IP and port of the API server
+  /// - query - paload data to be sent to the API server, containing specific kind of API query
+  /// - timeout
+  /// - connectTimeout
   ApiRequest({
     required String authToken,
     required ApiAddress address,
@@ -78,6 +84,7 @@ class ApiRequest {
   Future<Result<ApiReply, Failure>> _fetchSocket(List<int> bytes) {
     return Socket.connect(_address.host, _address.port, timeout: _connectTimeout)
       .then((socket) async {
+        socket.setOption(SocketOption.tcpNoDelay, true);
         return _send(socket, bytes)
           .then((result) {
             return switch(result) {
@@ -224,28 +231,37 @@ class ApiRequest {
   ///
   /// Returns message read from the socket
   Future<Result<List<int>, Failure>> _read(Socket socket) async {
-    final ParseData message = resetParseMessage();
+    ParseData message = resetParseMessage();
     int maxChunks = 10;
     try {
-      Result<List<int>, Failure> result = Err(Failure(message: 'ApiRequest._read | Result is not assigned', stackTrace: StackTrace.current));
-      final subscription = socket
+      // Result<List<int>, Failure> result = Err(Failure(message: 'ApiRequest._read | Result is not assigned', stackTrace: StackTrace.current));
+      final bytes = await socket
         .timeout(
           _timeout,
           onTimeout: (sink) {
             sink.close();
           },
-        )
-        .listen((bytes) {
-          if (maxChunks-- > 0) {
-            result = _parse(message, bytes);
-          }
-          maxChunks = 10;
-          result = Err(Failure(message: 'ApiRequest._read | No valid messages in the socket', stackTrace: StackTrace.current));    
-        });
-      await subscription.asFuture();
-      // _log.fine('._read | socket message: $message');
+        ).first;
+      while (maxChunks-- > 0) {
+        final result = _parse(message, bytes);
+        if (result is Ok) {
+          _closeSocket(socket);
+          return result;
+        }
+      }
       _closeSocket(socket);
-      return result;
+      return Err(Failure(message: 'ApiRequest._read | No valid messages in the socket', stackTrace: StackTrace.current));    
+        // .listen((bytes) {
+        //   if (maxChunks-- > 0) {
+        //     result = _parse(message, bytes);
+        //     return;
+        //   }
+        //   message = resetParseMessage();
+        //   maxChunks = 10;
+        //   result = Err(Failure(message: 'ApiRequest._read | No valid messages in the socket', stackTrace: StackTrace.current));    
+        // });
+      // await subscription.asFuture();
+      // _log.fine('._read | socket message: $message');
     } catch (error) {
       _log.warning('._read | Socket error: $error');
       await _closeSocket(socket);

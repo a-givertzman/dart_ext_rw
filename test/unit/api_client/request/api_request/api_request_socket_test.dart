@@ -12,6 +12,7 @@ import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/parse_size.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 
@@ -37,6 +38,8 @@ class FakeApiQueryType implements ApiQueryType {
 }
 
 void main() {
+  Log.initialize(level: LogLevel.all);
+  final log = Log('Test:MessageBuild');
   group('ApiRequest socket', () {
     late ApiAddress address;
     late ServerSocket serverSocket;
@@ -88,7 +91,9 @@ void main() {
             query: query,
           ),
         );
+        final stopwatch = Stopwatch()..start();
         final result = await apiRequest.fetch();
+        log.debug('Fetch done, elapsed: ${stopwatch.elapsed}');        
         expect(
           result,
           isA<Ok>(),
