@@ -8,15 +8,17 @@ import 'package:hmi_core/hmi_core_result.dart';
 class FieldSize {
   final Log _log = Log('FieldSize');
   final int _len;
+  final Endian _endian;
   ///
   /// Returns FieldSize new instance
   /// - By default field `Size` is 4 bytes
   /// - [] length of the field `Size` in the bytes
-  FieldSize({int len = 4}):
-    _len = len;
+  FieldSize({int len = 4, Endian endian = Endian.big}):
+    _len = len,
+    _endian = endian;
   ///
-  /// Returns [length] as bytes of specified [len]
-  Uint8List size(int length) => Uint8List(_len)..buffer.asByteData().setInt32(0, length, Endian.big);
+  /// Returns [length] as bytes of specified [length]
+  Uint8List size(int length) => Uint8List(_len)..buffer.asByteData().setInt32(0, length, _endian);
   ///
   /// Returns length of the field `Size` in the bytes
   int get len => _len;
@@ -25,7 +27,7 @@ class FieldSize {
   Result<int, Failure> from(List<int> bytes) {
     _log.debug('.from | bytes: $bytes');
     final lst = Uint8List(_len)..setAll(0, bytes);
-    final len = lst.buffer.asByteData().getInt32(0, Endian.big);
+    final len = lst.buffer.asByteData().getInt32(0, _endian);
     return Ok(len);
   }
 }
