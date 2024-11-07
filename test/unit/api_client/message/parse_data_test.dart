@@ -18,7 +18,7 @@ const keepGo = false;
 /// Testing [ParseData].parse
 void main() {
   Log.initialize(level: LogLevel.all);
-  final _log = Log('Test:ParseData');
+  final log = Log('Test:ParseData');
   group('ParseData.parse', () {
     test('.parse()', () async {
       ParseData dataParse = ParseData(
@@ -48,7 +48,7 @@ void main() {
         (15,  keepGo, [317, 318, 319        ], Some((FieldKind.string,  258)), [for(var i=62; i<=319; i+=1) i]),
       ];
       for (final (step, restart, bytes, target, targetBytes) in testData) {
-        _log.debug('.parse | step: $step,  targetBytes.length: ${targetBytes.length}');
+        log.debug('.parse | step: $step,  targetBytes.length: ${targetBytes.length}');
         if (restart) {
           dataParse = ParseData(
             field: ParseSize(

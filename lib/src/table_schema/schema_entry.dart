@@ -10,7 +10,7 @@ class SchemaEntry implements SchemaEntryAbstract {
   final _log = Log("$SchemaEntry");
   final _id = const Uuid().v1();  // v1 time-based id
   final Map<String, FieldValue> _map;
-  final _isEmpty;
+  final bool _isEmpty;
   bool _isChanged =  false;
   bool _isSelected = false;
   ///

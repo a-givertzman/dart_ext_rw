@@ -15,7 +15,7 @@ const keepGo = false;
 /// Testing [MessageBuild].parse
 void main() {
   Log.initialize(level: LogLevel.all);
-  final _log = Log('Test:MessageBuild');
+  final log = Log('Test:MessageBuild');
   group('MessageBuild.build', () {
     test('.build()', () async {
       MessageBuild message = MessageBuild(
@@ -40,8 +40,8 @@ void main() {
           );
         }
         final result = message.build(bytes);
-        _log.debug('.parse | step: $step,  result.length: ${result.length}');
-        _log.debug('.parse |           target.length: ${target.length}');
+        log.debug('.parse | step: $step,  result.length: ${result.length}');
+        log.debug('.parse |           target.length: ${target.length}');
         expect(
           listEquals(result, target),
           true,
