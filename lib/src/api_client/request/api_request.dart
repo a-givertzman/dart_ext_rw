@@ -171,7 +171,7 @@ class ApiRequest {
     }
   }
   ///
-  Result<List<int>, Failure> _parse(DataParse message, Bytes bytes) {
+  Result<List<int>, Failure> _parse(ParseData message, Bytes bytes) {
           int count = 0;
           while (count++ < 3) {
             switch (message.parse(bytes)) {
@@ -218,7 +218,7 @@ class ApiRequest {
   
   ///
   Future<Result<List<int>, Failure>> _read(Socket socket) async {
-    DataParse message = DataParse(
+    ParseData message = ParseData(
       field: ParseSize(
         size: FieldSize(),
         field: ParseKind(

@@ -14,12 +14,12 @@ const int syn = 22;
 const restart = true;
 const keepGo = false;
 ///
-/// Testing [DataParse].parse
+/// Testing [ParseData].parse
 void main() {
   Log.initialize(level: LogLevel.all);
   group('DataParse.parse', () {
     test('.parse()', () async {
-      DataParse dataParse = DataParse(
+      ParseData dataParse = ParseData(
         field: ParseSize(
           size: FieldSize(),
           field: ParseKind(
@@ -27,17 +27,17 @@ void main() {
           ),
         ),
       );
-      final testData = [
-        (01,  keepGo, Some(null), [ 11,  12, syn, 40, 00], None( ), []),
-        (02,  keepGo, Some(null), [ 00,  00,  02, 25, 26], Some(null), [25, 26]),
-        (03, restart, Some(null), [ 31, syn,  40, 00, 00], None( ), []),
-        (04, restart, Some(null), [ 00,  03,  44, 45, 46], None( ), []),
-        (05,  keepGo, Some(null), [syn,  40,  00, 00, 00], None( ), []),
-        (06,  keepGo, Some(null), [ 04,  62,  63, 64, 65], Some(null), [62,  63, 64, 65]),
-        (07, restart, Some(null), [syn,  40,  00, 00, 00], None( ), []),
-        (08,  keepGo, Some(null), [ 10,  62,  63, 64, 65], Some(10), [62,  63, 64, 65]),
-        (09,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(10), [66,  67,  68, 69, 70]),
-        (10, restart, Some(null), [syn,  40,  00, 00, 01], None( ), []),
+      final List<(int, bool, Some<Null>, List<int>, Option<int>, List<int>)> testData = [
+        (01,  keepGo, Some(null), [ 11,  12, syn, 40, 00], None(   ), []),
+        (02,  keepGo, Some(null), [ 00,  00,  02, 25, 26], Some(  2), [25, 26]),
+        (03, restart, Some(null), [ 31, syn,  40, 00, 00], None(   ), []),
+        (04, restart, Some(null), [ 00,  03,  44, 45, 46], None(   ), []),
+        (05,  keepGo, Some(null), [syn,  40,  00, 00, 00], None(   ), []),
+        (06,  keepGo, Some(null), [ 04,  62,  63, 64, 65], Some(  4), [62,  63, 64, 65]),
+        (07, restart, Some(null), [syn,  40,  00, 00, 00], None(   ), []),
+        (08,  keepGo, Some(null), [ 10,  62,  63, 64, 65], Some( 10), [62,  63, 64, 65]),
+        (09,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some( 10), [66,  67,  68, 69, 70]),
+        (10, restart, Some(null), [syn,  40,  00, 00, 01], None(   ), []),
         (11,  keepGo, Some(null), [ 02,  62,  63, 64, 65], Some(258), [62,  63, 64, 65]),
         (12,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
         (13,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
@@ -45,7 +45,7 @@ void main() {
       final targetKind = FieldKind.string;
       for (final (step, restart, _, bytes, target, targetBytes) in testData) {
         if (restart) {
-          dataParse = DataParse(
+          dataParse = ParseData(
             field: ParseSize(
               size: FieldSize(),
               field: ParseKind(
@@ -68,9 +68,9 @@ void main() {
               reason: 'step: $step \n result: $kind \n target: $targetBytes',
             );
             expect(
-              size,
-              targetBytes.length,
-              reason: 'step: $step \n result: $size \n target: ${targetBytes.length}',
+              size.len,
+              target.unwrap(),
+              reason: 'step: $step \n result: $size.len \n target: ${target.unwrap()}',
             );
             expect(
               listEquals(resultBytes, targetBytes),

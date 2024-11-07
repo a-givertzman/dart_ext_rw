@@ -4,13 +4,13 @@ import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 ///
 ///
-class DataParse implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> {
+class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> {
   final MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> _field;
   final Bytes _buf = [];
   int? _size;
   ///
   ///
-  DataParse({
+  ParseData({
     required MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> field,
   }) :
     _field = field;
