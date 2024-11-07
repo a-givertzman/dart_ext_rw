@@ -18,7 +18,7 @@ void main() {
   group('SizeParse.parse', () {
     test('.parse()', () async {
       ParseSize sizeParse = ParseSize(
-        size: FieldSize(),
+        size: FieldSize.def(),
         field: ParseKind(
           field: ParseSyn.def(),
         ),
@@ -41,7 +41,7 @@ void main() {
       for (final (step, restart, _, bytes, target, targetBytes) in testData) {
         if (restart) {
           sizeParse = ParseSize(
-            size: FieldSize(),
+            size: FieldSize.def(),
             field: ParseKind(
               field: ParseSyn.def(),
             ),

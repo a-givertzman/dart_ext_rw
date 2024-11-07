@@ -21,7 +21,7 @@ void main() {
       MessageBuild message = MessageBuild(
         syn: FieldSyn.def(),
         kind: FieldKind.string,
-        size: FieldSize(),
+        size: FieldSize.def(),
         data: FieldData([]),
       );
       final List<(int, bool, List<int>, FieldKind, List<int>)> testData = [
@@ -35,7 +35,7 @@ void main() {
           message = MessageBuild(
             syn: FieldSyn.def(),
             kind: kind,
-            size: FieldSize(),
+            size: FieldSize.def(),
             data: FieldData([]),
           );
         }

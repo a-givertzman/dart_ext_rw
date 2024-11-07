@@ -33,7 +33,7 @@ class ParseSize implements MessageParse<List<int>, Option<(FieldKind, FieldSize,
               Ok(value:final size) => () {
                 _size = size;
                 _buf.clear();
-                return Some((kind, FieldSize(len: size), input.sublist(_confSize.len)));
+                return Some((kind, FieldSize(size), input.sublist(_confSize.len)));
               }() as Option<(FieldKind, FieldSize, List<int>)>,
               Err() => () {
                 _buf = input;
@@ -48,7 +48,7 @@ class ParseSize implements MessageParse<List<int>, Option<(FieldKind, FieldSize,
           return None();
       }
     } else {
-      return Some((_kind!, FieldSize(len: size_), bytes));
+      return Some((_kind!, FieldSize(size_), bytes));
     }
   }
 }

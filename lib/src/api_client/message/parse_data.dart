@@ -44,7 +44,7 @@ class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
               final remainder = kindSize.size - _buf.length;
               _buf.addAll(input.sublist(0, remainder));
             }
-            return Some((kindSize.kind, FieldSize(len: kindSize.size), _buf));
+            return Some((kindSize.kind, FieldSize(kindSize.size), _buf));
           } else {
             _buf.addAll(input);
             return None();

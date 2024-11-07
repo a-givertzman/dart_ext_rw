@@ -215,19 +215,19 @@ class ApiRequest {
           }
           return Err(Failure(message: 'ApiRequest._read | No valid messages in the socket', stackTrace: StackTrace.current));    
   }
-  
   ///
+  /// Returns message read from the socket
   Future<Result<List<int>, Failure>> _read(Socket socket) async {
     ParseData message = ParseData(
       field: ParseSize(
-        size: FieldSize(),
+        size: FieldSize.def(),
         field: ParseKind(
           field: ParseSyn.def(),
         ),
       ),
     );
     try {
-      Result<List<int>, Failure> result = Err(Failure(message: '._read | Result is not assigned', stackTrace: StackTrace.current));
+      Result<List<int>, Failure> result = Err(Failure(message: 'ApiRequest._read | Result is not assigned', stackTrace: StackTrace.current));
       final subscription = socket
         .timeout(
           _timeout,
@@ -236,7 +236,14 @@ class ApiRequest {
           },
         )
         .listen((bytes) {
-          result = _parse(message, bytes);
+          result = switch (message.parse(bytes)) {
+            Some(value: (final FieldKind kind, final FieldSize size, final Bytes data)) => Ok(data),
+            None() => () {
+              final debugBytes = bytes.length > 24 ? bytes.sublist(0, 24) : bytes;
+              return Err(Failure(message: 'ApiRequest._read | Can`t parse bytes: $debugBytes', stackTrace: StackTrace.current));
+            }() as Result<List<int>, Failure<dynamic>>,
+          };
+          // .okOr();
           // message.addAll(bytes);
         });
       await subscription.asFuture();
@@ -257,8 +264,14 @@ class ApiRequest {
   ///
   /// Sends bytes over WEB socket
   Future<Result<bool, Failure>> _sendWeb(WebSocket socket, List<int> bytes) async {
+    final message = MessageBuild(
+      syn: FieldSyn.def(),
+      kind: FieldKind.string,
+      size: FieldSize.def(),
+      data: FieldData([]),
+    );
     try {
-      socket.add(bytes);
+      socket.add(message.build(bytes));
       return Future.value(const Ok(true));
     } catch (error) {
       _log.warning('._send | Web socket error: $error');
@@ -276,7 +289,7 @@ class ApiRequest {
     final message = MessageBuild(
       syn: FieldSyn.def(),
       kind: FieldKind.string,
-      size: FieldSize(),
+      size: FieldSize.def(),
       data: FieldData([]),
     );
     try {
@@ -293,6 +306,7 @@ class ApiRequest {
     }
   }
   ///
+  /// Closes the socket
   Future<void> _closeSocketWeb(WebSocket? socket) async {
     try {
       socket?.close();
@@ -302,6 +316,7 @@ class ApiRequest {
     }
   }  
   ///
+  /// Closes the socket
   Future<void> _closeSocket(Socket? socket) async {
     try {
       await socket?.close();

@@ -23,7 +23,7 @@ void main() {
     test('.parse()', () async {
       ParseData dataParse = ParseData(
         field: ParseSize(
-          size: FieldSize(),
+          size: FieldSize.def(),
           field: ParseKind(
             field: ParseSyn.def(),
           ),
@@ -52,7 +52,7 @@ void main() {
         if (restart) {
           dataParse = ParseData(
             field: ParseSize(
-              size: FieldSize(),
+              size: FieldSize.def(),
               field: ParseKind(
                 field: ParseSyn.def(),
               ),
