@@ -11,11 +11,20 @@ class FieldSize {
   final Endian _endian;
   ///
   /// Returns FieldSize new instance
-  /// - By default field `Size` is 4 bytes
-  /// - [] length of the field `Size` in the bytes
-  FieldSize({int len = 4, Endian endian = Endian.big}):
+  /// - len the length of the field `Size` in bytes
+  /// - endian - ordeting of bytes in the field `Size`:
+  ///   - `Endian.big      [00, 00, 00, 01] -> 1`
+  ///   - `Endian.little   [01, 00, 00, 00] -> 1`
+  FieldSize(int len, {Endian endian = Endian.big}):
     _len = len,
     _endian = endian;
+  ///
+  /// Returns FieldSize new instance
+  /// - With default `len = 4 bytes`
+  /// - With default `endian = Endian.big`
+  FieldSize.def():
+    _len = 4,
+    _endian =  Endian.big;
   ///
   /// Returns [length] as bytes of specified [length]
   Uint8List size(int length) => Uint8List(_len)..buffer.asByteData().setInt32(0, length, _endian);
