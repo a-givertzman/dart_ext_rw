@@ -46,40 +46,24 @@ enum FieldKind {
   ///
   /// Returns Ok(FieldKind) if parsed
   static Result<FieldKind, Failure> from(int? val) {
-    switch (val) {
-      case 0:
-        return Ok(FieldKind.any);
-      case 1:
-        return Ok(FieldKind.empty);
-      case 2:
-        return Ok(FieldKind.bytes);
-      case 8:
-        return Ok(FieldKind.bool);
-      case 16:
-        return Ok(FieldKind.uint16);
-      case 17:
-        return Ok(FieldKind.uint32);
-      case 18:
-        return Ok(FieldKind.uint64);
-      case 24:
-        return Ok(FieldKind.int16);
-      case 25:
-        return Ok(FieldKind.int32);
-      case 26:
-        return Ok(FieldKind.int64);
-      case 32:
-        return Ok(FieldKind.f32);
-      case 33:
-        return Ok(FieldKind.f64);
-      case 40:
-        return Ok(FieldKind.string);
-      case 48:
-        return Ok(FieldKind.timestamp);
-      case 49:
-        return Ok(FieldKind.duration);
-      default:
-        return Err(Failure(message: 'FieldKind.fromBytes | Unknown Kind $val', stackTrace: StackTrace.current));
-    }
+    return switch (val) {
+      0 => Ok(FieldKind.any),
+      1 => Ok(FieldKind.empty),
+      2 => Ok(FieldKind.bytes),
+      8 => Ok(FieldKind.bool),
+      16 => Ok(FieldKind.uint16),
+      17 => Ok(FieldKind.uint32),
+      18 => Ok(FieldKind.uint64),
+      24 => Ok(FieldKind.int16),
+      25 => Ok(FieldKind.int32),
+      26 => Ok(FieldKind.int64),
+      32 => Ok(FieldKind.f32),
+      33 => Ok(FieldKind.f64),
+      40 => Ok(FieldKind.string),
+      48 => Ok(FieldKind.timestamp),
+      49 => Ok(FieldKind.duration),
+      _ => Err(Failure(message: 'FieldKind.fromBytes | Unknown Kind $val', stackTrace: StackTrace.current)),
+    };
   }
   @override
   String toString() {
