@@ -65,39 +65,26 @@ enum FieldKind {
       _ => Err(Failure(message: 'FieldKind.fromBytes | Unknown Kind $val', stackTrace: StackTrace.current)),
     };
   }
+  //
+  //
   @override
   String toString() {
-    switch (this) {
-      case FieldKind.any:
-        return 'FieldKind.any';
-      case FieldKind.empty:
-        return 'FieldKind.empty';
-      case FieldKind.bytes:
-        return 'FieldKind.bytes';
-      case FieldKind.bool:
-        return 'FieldKind.bool';
-      case FieldKind.uint16:
-        return 'FieldKind.uint16';
-      case FieldKind.uint32:
-        return 'FieldKind.uint32';
-      case FieldKind.uint64:
-        return 'FieldKind.uint64';
-      case FieldKind.int16:
-        return 'FieldKind.int16';
-      case FieldKind.int32:
-        return 'FieldKind.int32';
-      case FieldKind.int64:
-        return 'FieldKind.int64';
-      case FieldKind.f32:
-        return 'FieldKind.f32';
-      case FieldKind.f64:
-        return 'FieldKind.f64';
-      case FieldKind.string:
-        return 'FieldKind.string';
-      case FieldKind.timestamp:
-        return 'FieldKind.timestamp';
-      case FieldKind.duration:
-        return 'FieldKind.duration';
-    }
+    return switch (this) {
+      FieldKind.any => 'FieldKind.any',
+      FieldKind.empty => 'FieldKind.empty',
+      FieldKind.bytes => 'FieldKind.bytes',
+      FieldKind.bool => 'FieldKind.bool',
+      FieldKind.uint16 => 'FieldKind.uint16',
+      FieldKind.uint32 => 'FieldKind.uint32',
+      FieldKind.uint64 => 'FieldKind.uint64',
+      FieldKind.int16 => 'FieldKind.int16',
+      FieldKind.int32 => 'FieldKind.int32',
+      FieldKind.int64 => 'FieldKind.int64',
+      FieldKind.f32 => 'FieldKind.f32',
+      FieldKind.f64 => 'FieldKind.f64',
+      FieldKind.string => 'FieldKind.string',
+      FieldKind.timestamp => 'FieldKind.timestamp',
+      FieldKind.duration => 'FieldKind.duration',
+    };
   }
 }
