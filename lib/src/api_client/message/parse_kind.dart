@@ -5,16 +5,16 @@ import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 ///
-class ParseKind implements MessageParse<List<int>, Option<(FieldKind, List<int>)>> {
-  final MessageParse<dynamic, Option<List<int>>> _field;
+class ParseKind implements MessageParse<Bytes, Option<(FieldKind, Bytes)>> {
+  final MessageParse<Bytes, Option<Bytes>> _field;
   FieldKind? _kind;
   ///
   ///
-  ParseKind({required MessageParse<dynamic, Option<List<int>>> field}) : _field = field;
+  ParseKind({required MessageParse<Bytes, Option<Bytes>> field}) : _field = field;
   //
   //
   @override
-  Option<(FieldKind, List<int>)> parse(List<int> input) {
+  Option<(FieldKind, Bytes)> parse(Bytes input) {
     final kind_ = _kind;
     if (kind_ == null) {
       switch (_field.parse(input)) {
@@ -25,7 +25,7 @@ class ParseKind implements MessageParse<List<int>, Option<(FieldKind, List<int>)
               Ok<FieldKind, Failure>(:final value) => () {
                 _kind = value;
                 return Some((value, bytes.sublist(1)));
-              }() as Option<(FieldKind, List<int>)>,
+              }() as Option<(FieldKind, Bytes)>,
               Err<FieldKind, Failure>() => () {
                 return None();
               }(),

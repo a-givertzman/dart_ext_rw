@@ -5,9 +5,9 @@ import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 ///
-class ParseSize implements MessageParse<List<int>, Option<(FieldKind, FieldSize, List<int>)>> {
-  final MessageParse<dynamic, Option<(FieldKind, List<int>)>> _field;
-  List<int> _buf = [];
+class ParseSize implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> {
+  final MessageParse<dynamic, Option<(FieldKind, Bytes)>> _field;
+  Bytes _buf = [];
   final FieldSize _confSize;
   int? _size;
   FieldKind? _kind;
@@ -15,18 +15,18 @@ class ParseSize implements MessageParse<List<int>, Option<(FieldKind, FieldSize,
   ///
   ParseSize({
     required FieldSize size,
-    required MessageParse<dynamic, Option<(FieldKind, List<int>)>> field,
+    required MessageParse<Bytes, Option<(FieldKind, Bytes)>> field,
   }) :
     _confSize = size,
     _field = field;
   //
   //
   @override
-  Option<(FieldKind, FieldSize, List<int>)> parse(List<int> bytes) {
+  Option<(FieldKind, FieldSize, Bytes)> parse(Bytes bytes) {
     final size_ = _size;
     if (size_ == null) {
       switch (_field.parse([..._buf, ...bytes])) {
-        case Some(value: (FieldKind kind, List<int> input)):
+        case Some(value: (FieldKind kind, Bytes input)):
           _kind = kind;
           if (input.length >= _confSize.len) {
             return switch (_confSize.from(input.sublist(0, _confSize.len))) {
@@ -34,7 +34,7 @@ class ParseSize implements MessageParse<List<int>, Option<(FieldKind, FieldSize,
                 _size = size;
                 _buf.clear();
                 return Some((kind, FieldSize(size), input.sublist(_confSize.len)));
-              }() as Option<(FieldKind, FieldSize, List<int>)>,
+              }() as Option<(FieldKind, FieldSize, Bytes)>,
               Err() => () {
                 _buf = input;
                 return None();
