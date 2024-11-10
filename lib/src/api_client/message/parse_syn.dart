@@ -2,12 +2,15 @@ import 'package:ext_rw/src/api_client/message/field_syn.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 ///
-/// Used to build / parse a start of the message
+/// Extracting `SYN` symbol from the input bytes
+/// - Used to identify a start of the message
 class ParseSyn implements MessageParse<Bytes, Option<Bytes>> {
   final FieldSyn _syn;
   int _start = -1;
   ///
   /// Returns ParseSyn new instance
+  /// - [syn] - some byte identyfies a start of the message,
+  /// - By default 22 can be used
   ParseSyn({
     required FieldSyn syn,
   }): _syn = syn;

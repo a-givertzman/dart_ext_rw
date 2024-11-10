@@ -17,12 +17,12 @@ void main() {
   Log.initialize(level: LogLevel.all);
   final log = Log('Test:MessageBuild');
   group('MessageBuild.build', () {
-    test('.build()', () async {
+    test('.build()', () {
       MessageBuild message = MessageBuild(
         syn: FieldSyn.def(),
         kind: FieldKind.string,
         size: FieldSize.def(),
-        data: FieldData([]),
+        data: FieldData(Uint8List(0)),
       );
       final List<(int, bool, List<int>, FieldKind, List<int>)> testData = [
         (01,  keepGo, [25, 26],                                 FieldKind.string, [syn, FieldKind.string.kind, 00, 00, 00, 02, 25, 26] ),
@@ -36,10 +36,10 @@ void main() {
             syn: FieldSyn.def(),
             kind: kind,
             size: FieldSize.def(),
-            data: FieldData([]),
+            data: FieldData(Uint8List(0)),
           );
         }
-        final result = message.build(bytes);
+        final result = message.build(Uint8List.fromList(bytes));
         log.debug('.parse | step: $step,  result.length: ${result.length}');
         log.debug('.parse |           target.length: ${target.length}');
         expect(

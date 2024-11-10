@@ -59,7 +59,7 @@ void main() {
             ),
           );
         }
-        switch (dataParse.parse(bytes)) {
+        switch (dataParse.parse(Uint8List.fromList(bytes))) {
           case Some(value: (FieldKind kind, FieldSize size, Bytes resultBytes)):
             final targetKind = target.unwrap().$1;
             final targetSize = target.unwrap().$2;

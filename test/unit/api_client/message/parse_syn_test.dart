@@ -26,7 +26,7 @@ void main() {
         if (restart) {
           fieldSyn = ParseSyn.def();
         }
-        switch (fieldSyn.parse(bytes)) {
+        switch (fieldSyn.parse(Uint8List.fromList(bytes))) {
           case Some<List<int>>(value: Bytes resultBytes):
             expect(
               target,

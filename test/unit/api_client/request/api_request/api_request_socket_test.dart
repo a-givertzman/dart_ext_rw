@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:ext_rw/ext_rw.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
@@ -65,7 +66,7 @@ void main() {
             syn: FieldSyn.def(),
             kind: FieldKind.string,
             size: FieldSize.def(),
-            data: FieldData([]),
+            data: FieldData(Uint8List(0)),
           );
           socket.add(messageSend.build(data));
         });

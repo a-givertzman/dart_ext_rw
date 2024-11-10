@@ -47,7 +47,7 @@ void main() {
             ),
           );
         }
-        switch (sizeParse.parse(bytes)) {
+        switch (sizeParse.parse(Uint8List.fromList(bytes))) {
           case Some<(FieldKind, FieldSize, List<int>)>(value: (FieldKind _, FieldSize size, Bytes resultBytes)):
             expect(
               target,

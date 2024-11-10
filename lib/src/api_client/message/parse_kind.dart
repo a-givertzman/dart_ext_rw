@@ -4,15 +4,20 @@ import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
-///
+/// Extracting `kind` part from the input bytes
 class ParseKind implements MessageParse<Bytes, Option<(FieldKind, Bytes)>> {
   final MessageParse<Bytes, Option<Bytes>> _field;
   FieldKind? _kind;
   ///
-  ///
+  /// # Returns ParseKind new instance
+  /// - **in case of Receiving**
+  ///   - [field] - is [ParseSyn]
   ParseKind({required MessageParse<Bytes, Option<Bytes>> field}) : _field = field;
-  //
-  //
+  ///
+  /// Returns message `Kind` extracted from the input and the remaining bytes
+  /// - [input] - input bytes, can be passed multiple times
+  /// - if `Kind` is not detected: returns None
+  /// - if `Kind` is detected: returns `Kind` and all bytes following the `Kind`
   @override
   Option<(FieldKind, Bytes)> parse(Bytes input) {
     final kind_ = _kind;

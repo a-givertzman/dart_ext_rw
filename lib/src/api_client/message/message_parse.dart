@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 ///
 /// # Messages received over socket.
 /// 
@@ -33,19 +35,9 @@
 ///     - .., ...
 abstract class MessageParse<I, T> {
   ///
-  /// # Returns MessageParse result
-  /// - **in case of Sending**
-  ///   - [kind] - Kind of sending message
-  ///   - [size] - Size in bytes of the data
-  ///   - [data] - Sending data
-  /// - **in case of Receiving**
-  ///   - [kind] - Not required, ignored if specified
-  ///   - [size] - The length of the data will be used to read data from the socket
-  ///   - [data] - Data of length specified in [size] will be fetched from the socket
-  ///
   /// Returns T if parsed
   T parse(I input);
 }
 ///
 /// Input bytes type
-typedef Bytes = List<int>;
+typedef Bytes = Uint8List;  //List<int>;

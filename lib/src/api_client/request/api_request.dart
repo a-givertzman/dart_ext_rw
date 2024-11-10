@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
@@ -81,7 +82,7 @@ class ApiRequest {
   }
   ///
   /// Fetching on tcp socket
-  Future<Result<ApiReply, Failure>> _fetchSocket(List<int> bytes) {
+  Future<Result<ApiReply, Failure>> _fetchSocket(Uint8List bytes) {
     return Socket.connect(_address.host, _address.port, timeout: _connectTimeout)
       .then((socket) async {
         socket.setOption(SocketOption.tcpNoDelay, true);
@@ -115,7 +116,7 @@ class ApiRequest {
   }
   ///
   /// Fetching on web socket
-  Future<Result<ApiReply, Failure>> _fetchWebSocket(List<int> bytes) {
+  Future<Result<ApiReply, Failure>> _fetchWebSocket(Uint8List bytes) {
     return WebSocket.connect('ws://${_address.host}:${_address.port}')
       .then((wSocket) async {
         return _sendWeb(wSocket, bytes)
@@ -181,43 +182,30 @@ class ApiRequest {
   Result<List<int>, Failure> _parse(ParseData message, Bytes bytes) {
     switch (message.parse(bytes)) {
       case Some(value: (FieldKind kind, FieldSize _, Bytes data)):
-        switch (kind) {
-          case FieldKind.any:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.empty:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.bytes:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.bool:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.uint16:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.uint32:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.uint64:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.int16:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.int32:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.int64:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.f32:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.f64:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.string:
-            return Ok(data);
-          case FieldKind.timestamp:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-          case FieldKind.duration:
-            return Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current));
-        }
+        return switch (kind) {
+          FieldKind.any => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.empty => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.bytes => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.bool => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.uint16 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.uint32 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.uint64 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.int16 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.int32 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.int64 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.f32 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.f64 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.string => Ok(data),
+          FieldKind.timestamp => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+          FieldKind.duration => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
+        };
       case None():
         final logBytes = bytes.length > 24 ? '${bytes.sublist(0, 24)}...' : bytes;
         return Err(Failure(message: '._read | Socket message not parsed: $logBytes', stackTrace: StackTrace.current));    
     }
   }
+  ///
+  /// Returns MessageParse new instance
   ParseData resetParseMessage() {
     return ParseData(
       field: ParseSize(
@@ -265,12 +253,12 @@ class ApiRequest {
   }
   ///
   /// Sends bytes over WEB socket
-  Future<Result<bool, Failure>> _sendWeb(WebSocket socket, List<int> bytes) async {
+  Future<Result<bool, Failure>> _sendWeb(WebSocket socket, Uint8List bytes) async {
     final message = MessageBuild(
       syn: FieldSyn.def(),
       kind: FieldKind.string,
       size: FieldSize.def(),
-      data: FieldData([]),
+      data: FieldData(Uint8List(0)),
     );
     try {
       socket.add(message.build(bytes));
@@ -287,12 +275,12 @@ class ApiRequest {
   }
   ///
   /// Sends bytes over raw TCP socket
-  Future<Result<bool, Failure>> _send(Socket socket, List<int> bytes) async {
+  Future<Result<bool, Failure>> _send(Socket socket, Uint8List bytes) async {
     final message = MessageBuild(
       syn: FieldSyn.def(),
       kind: FieldKind.string,
       size: FieldSize.def(),
-      data: FieldData([]),
+      data: FieldData(Uint8List(0)),
     );
     try {
       socket.add(message.build(bytes));
