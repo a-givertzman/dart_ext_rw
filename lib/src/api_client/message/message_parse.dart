@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 ///
 /// # Messages received over socket.
 /// 
@@ -40,4 +38,4 @@ abstract class MessageParse<I, T> {
 }
 ///
 /// Input bytes type
-typedef Bytes = Uint8List;  //List<int>;
+typedef Bytes = List<int>;

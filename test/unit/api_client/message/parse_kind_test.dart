@@ -53,7 +53,7 @@ void main() {
             field: ParseSyn.def(),
           );
         }
-        switch (fieldKind.parse(Uint8List.fromList(bytes))) {
+        switch (fieldKind.parse(bytes)) {
           case Some<(FieldKind, List<int>)>(value: (FieldKind kind, Bytes resultBytes)):
             expect(
               targetKind,

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
@@ -82,7 +81,7 @@ class ApiRequest {
   }
   ///
   /// Fetching on tcp socket
-  Future<Result<ApiReply, Failure>> _fetchSocket(Uint8List bytes) {
+  Future<Result<ApiReply, Failure>> _fetchSocket(Bytes bytes) {
     return Socket.connect(_address.host, _address.port, timeout: _connectTimeout)
       .then((socket) async {
         socket.setOption(SocketOption.tcpNoDelay, true);
@@ -116,7 +115,7 @@ class ApiRequest {
   }
   ///
   /// Fetching on web socket
-  Future<Result<ApiReply, Failure>> _fetchWebSocket(Uint8List bytes) {
+  Future<Result<ApiReply, Failure>> _fetchWebSocket(Bytes bytes) {
     return WebSocket.connect('ws://${_address.host}:${_address.port}')
       .then((wSocket) async {
         return _sendWeb(wSocket, bytes)
@@ -253,12 +252,12 @@ class ApiRequest {
   }
   ///
   /// Sends bytes over WEB socket
-  Future<Result<bool, Failure>> _sendWeb(WebSocket socket, Uint8List bytes) async {
+  Future<Result<bool, Failure>> _sendWeb(WebSocket socket, Bytes bytes) async {
     final message = MessageBuild(
       syn: FieldSyn.def(),
       kind: FieldKind.string,
       size: FieldSize.def(),
-      data: FieldData(Uint8List(0)),
+      data: FieldData([]),
     );
     try {
       socket.add(message.build(bytes));
@@ -275,12 +274,12 @@ class ApiRequest {
   }
   ///
   /// Sends bytes over raw TCP socket
-  Future<Result<bool, Failure>> _send(Socket socket, Uint8List bytes) async {
+  Future<Result<bool, Failure>> _send(Socket socket, Bytes bytes) async {
     final message = MessageBuild(
       syn: FieldSyn.def(),
       kind: FieldKind.string,
       size: FieldSize.def(),
-      data: FieldData(Uint8List(0)),
+      data: FieldData([]),
     );
     try {
       socket.add(message.build(bytes));
