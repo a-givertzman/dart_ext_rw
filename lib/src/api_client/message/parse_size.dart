@@ -1,11 +1,13 @@
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
+import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 /// Extracting `size` part from the input bytes
 class ParseSize implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> {
+  final _log = const Log('ParseSize');
   final MessageParse<dynamic, Option<(FieldKind, Bytes)>> _field;
   final FieldSize _confSize;
   Bytes _buf = [];
@@ -27,34 +29,34 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
   /// - if `Size` is not detected: returns None
   /// - if `Size` is detected: returns `Kind`, `Size` and all bytes following the `Size`
   @override
-  Option<(FieldKind, FieldSize, Bytes)> parse(Bytes bytes) {
+  Option<(FieldKind, FieldSize, Bytes)> parse(Bytes input) {
     final size_ = _size;
     if (size_ == null) {
-      _buf = [..._buf, ...bytes];
+      _buf = [..._buf, ...input];
       switch (_field.parse(_buf)) {
-        case Some(value: (FieldKind kind, Bytes input)):
+        case Some(value: (FieldKind kind, Bytes bytes)):
           _kind = kind;
-          if (input.length >= _confSize.len) {
-            return switch (_confSize.from(input.sublist(0, _confSize.len))) {
+          if (bytes.length >= _confSize.len) {
+            return switch (_confSize.fromBytes(bytes.sublist(0, _confSize.len))) {
               Ok(value:final size) => () {
                 _size = size;
-                _buf.clear();
-                return Some((kind, FieldSize(size), input.sublist(_confSize.len)));
+                _log.debug('.parse | bytes: $bytes');
+                return Some((kind, FieldSize(size), bytes.sublist(_confSize.len)));
               }() as Option<(FieldKind, FieldSize, Bytes)>,
               Err() => () {
-                _buf = input;
+                _buf = bytes;
                 return None();
               }(),
             };
           } else {
-            _buf = input;
+            _buf = bytes;
             return None();
           }
         case None():
           return None();
       }
     } else {
-      return Some((_kind!, FieldSize(size_), bytes));
+      return Some((_kind!, FieldSize(size_), input));
     }
   }
 }

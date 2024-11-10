@@ -6,6 +6,7 @@ import 'package:ext_rw/src/api_client/message/parse_size.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 ///
 /// setup constants
@@ -15,6 +16,7 @@ const keepGo = false;
 ///
 /// Testing [ParseSize].parse
 void main() {
+  Log.initialize(level: LogLevel.all);
   group('SizeParse.parse', () {
     test('.parse()', () async {
       ParseSize sizeParse = ParseSize(

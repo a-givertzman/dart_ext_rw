@@ -32,11 +32,14 @@ class FieldSize {
   /// Returns length of the field `Size` in the bytes
   int get len => _len;
   ///
-  /// Returns Ok(FieldKind) if parsed
-  Result<int, Failure> from(List<int> bytes) {
-    _log.debug('.from | bytes: $bytes');
-    final lst = Uint8List(_len)..setAll(0, bytes);
-    final len = lst.buffer.asByteData().getInt32(0, _endian);
-    return Ok(len);
+  /// Returns `Size` built from bytes
+  Result<int, Failure> fromBytes(List<int> bytes) {
+    if (bytes.length >= _len) {
+      _log.debug('.from | bytes: $bytes');
+      final lst = Uint8List(_len)..setAll(0, bytes);
+      final len = lst.buffer.asByteData().getInt32(0, _endian);
+      return Ok(len);
+    }
+    return Err(Failure(message: 'FieldSize.from | input bytes length less then specified $_len', stackTrace: StackTrace.current));
   }
 }
