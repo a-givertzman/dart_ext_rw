@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
@@ -9,8 +7,8 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// Extracting `size` part from the input bytes
 class ParseSize implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> {
   final MessageParse<dynamic, Option<(FieldKind, Bytes)>> _field;
-  final BytesBuilder _buf = BytesBuilder();
   final FieldSize _confSize;
+  Bytes _buf = [];
   int? _size;
   FieldKind? _kind;
   ///
@@ -32,7 +30,7 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
   Option<(FieldKind, FieldSize, Bytes)> parse(Bytes bytes) {
     final size_ = _size;
     if (size_ == null) {
-      _buf.add(bytes);
+      _buf = [..._buf, ...bytes];
       switch (_field.parse(_buf)) {
         case Some(value: (FieldKind kind, Bytes input)):
           _kind = kind;
@@ -44,12 +42,12 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
                 return Some((kind, FieldSize(size), input.sublist(_confSize.len)));
               }() as Option<(FieldKind, FieldSize, Bytes)>,
               Err() => () {
-                // _buf.add(input);  //  = input;
+                _buf = input;
                 return None();
               }(),
             };
           } else {
-            // _buf = input;
+            _buf = input;
             return None();
           }
         case None():

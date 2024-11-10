@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
@@ -8,7 +6,7 @@ import 'package:hmi_core/hmi_core_option.dart';
 /// Extracting `payload` part from the input bytes
 class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> {
   final MessageParse<Bytes, Option<(FieldKind, FieldSize, Bytes)>> _field;
-  final BytesBuilder _buf = BytesBuilder();
+  final Bytes _buf = [];
   _KindAndSize? _kindSize;
   ///
   /// # Returns ParseData new instance
@@ -29,10 +27,10 @@ class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
         Some(value: (FieldKind kind, FieldSize size, Bytes bytes)) => () {
           _kindSize = _KindAndSize(kind, size.len);
           if (bytes.length >= size.len) {
-            _buf.add(bytes.sublist(0, size.len)); 
+            _buf.addAll(bytes.sublist(0, size.len)); 
             return Some((kind, size, _buf));
           } else {
-            _buf.add(bytes); 
+            _buf.addAll(bytes); 
             return None();
           }
         }() as Option<(FieldKind, FieldSize, Bytes)>,
@@ -47,11 +45,11 @@ class ParseData implements MessageParse<Bytes, Option<(FieldKind, FieldSize, Byt
           if ((_buf.length + bytes.length) >= kindSize.size) {
             if (_buf.length < kindSize.size) {
               final remainder = kindSize.size - _buf.length;
-              _buf.add(bytes.sublist(0, remainder));
+              _buf.addAll(bytes.sublist(0, remainder));
             }
             return Some((kindSize.kind, FieldSize(kindSize.size), _buf));
           } else {
-            _buf.add(bytes);
+            _buf.addAll(bytes);
             return None();
           }
         }() as Option<(FieldKind, FieldSize, Bytes)>,
