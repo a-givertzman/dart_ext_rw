@@ -58,6 +58,6 @@ class MessageBuild {
   ///
   /// Returns message built according to specified fields and [bytes]
   List<int> build(Bytes bytes) {
-    return [syn.syn, kind.kind, ...size.size(bytes.length), ...bytes];
+    return [syn.syn, kind.kind, ...FieldSize(bytes.length, len: size.len).toBytes(), ...bytes];
   }
 }

@@ -1,3 +1,4 @@
+import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
@@ -5,32 +6,34 @@ import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 /// Extracting `kind` part from the input bytes
-class ParseKind implements MessageParse<Bytes, Option<(FieldKind, Bytes)>> {
-  final MessageParse<Bytes, Option<Bytes>> _field;
-  FieldKind? _kind;
+class ParseKind implements MessageParse<Bytes, Option<(FieldId, FieldKind, Bytes)>> {
+  final MessageParse<Bytes, Option<(FieldId, Bytes)>> _field;
+  _IdAndKind? _idKind;
   ///
   /// # Returns ParseKind new instance
   /// - **in case of Receiving**
   ///   - [field] - is [ParseSyn]
-  ParseKind({required MessageParse<Bytes, Option<Bytes>> field}) : _field = field;
+  ParseKind({
+    required MessageParse<Bytes, Option<(FieldId, Bytes)>> field,
+  }) : _field = field;
   ///
   /// Returns message `Kind` extracted from the input and the remaining bytes
   /// - [input] - input bytes, can be passed multiple times
   /// - if `Kind` is not detected: returns None
   /// - if `Kind` is detected: returns `Kind` and all bytes following the `Kind`
   @override
-  Option<(FieldKind, Bytes)> parse(Bytes input) {
-    final kind_ = _kind;
-    if (kind_ == null) {
+  Option<(FieldId, FieldKind, Bytes)> parse(Bytes input) {
+    final idKind = _idKind;
+    if (idKind == null) {
       switch (_field.parse(input)) {
-        case Some(value :final bytes):
+        case Some(value : (final FieldId id, final Bytes bytes)):
           final raw = bytes.firstOrNull;
           if (raw != null) {
             return switch (FieldKind.from(raw)) {
-              Ok<FieldKind, Failure>(:final value) => () {
-                _kind = value;
-                return Some((value, bytes.sublist(1)));
-              }() as Option<(FieldKind, Bytes)>,
+              Ok<FieldKind, Failure>(value: final kind) => () {
+                _idKind = _IdAndKind(id, kind);
+                return Some((id, kind, bytes.sublist(1)));
+              }() as Option<(FieldId, FieldKind, Bytes)>,
               Err<FieldKind, Failure>() => () {
                 return None();
               }(),
@@ -42,7 +45,14 @@ class ParseKind implements MessageParse<Bytes, Option<(FieldKind, Bytes)>> {
           return None();
       }
     } else {
-      return Some((kind_, input));
+      return Some((idKind.id, idKind.kind, input));
     }
   }
+}
+///
+/// Just holds received id & kind
+class _IdAndKind {
+  final FieldId id;
+  final FieldKind kind;
+  _IdAndKind(this.id, this.kind);
 }

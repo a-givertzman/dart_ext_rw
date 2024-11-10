@@ -7,6 +7,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// Used as `size` in bytes of the `data` stored in the `Message`
 class FieldSize {
   final Log _log = Log('FieldSize');
+  final int _size;
   final int _len;
   final Endian _endian;
   ///
@@ -15,7 +16,8 @@ class FieldSize {
   /// - endian - ordeting of bytes in the field `Size`:
   ///   - `Endian.big      [00, 00, 00, 01] -> 1`
   ///   - `Endian.little   [01, 00, 00, 00] -> 1`
-  FieldSize(int len, {Endian endian = Endian.big}):
+  FieldSize(int size, {int len = 4, Endian endian = Endian.big}):
+    _size = size,
     _len = len,
     _endian = endian;
   ///
@@ -23,11 +25,15 @@ class FieldSize {
   /// - With default `len = 4 bytes`
   /// - With default `endian = Endian.big`
   FieldSize.def():
+    _size = 0,
     _len = 4,
     _endian =  Endian.big;
   ///
-  /// Returns [length] as bytes of specified [length]
-  Uint8List size(int length) => Uint8List(_len)..buffer.asByteData().setInt32(0, length, _endian);
+  /// Returns holding size
+  int get size => _size;
+  ///
+  /// Returns bytes of specified [size] of specified [len]
+  Uint8List toBytes() => Uint8List(_len)..buffer.asByteData().setInt32(0, _size, _endian);
   ///
   /// Returns length of the field `Size` in the bytes
   int get len => _len;
@@ -37,8 +43,8 @@ class FieldSize {
     if (bytes.length >= _len) {
       _log.debug('.from | bytes: $bytes');
       final lst = Uint8List(_len)..setAll(0, bytes);
-      final len = lst.buffer.asByteData().getInt32(0, _endian);
-      return Ok(len);
+      final size = lst.buffer.asByteData().getInt32(0, _endian);
+      return Ok(size);
     }
     return Err(Failure(message: 'FieldSize.from | input bytes length less then specified $_len', stackTrace: StackTrace.current));
   }

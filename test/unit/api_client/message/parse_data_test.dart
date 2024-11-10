@@ -1,7 +1,9 @@
+import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
+import 'package:ext_rw/src/api_client/message/parse_id.dart';
 import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/parse_size.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
@@ -21,17 +23,20 @@ void main() {
   final log = Log('Test:ParseData');
   group('ParseData.parse', () {
     test('.parse()', () async {
-      ParseData dataParse = ParseData(
+      ParseData parseData = ParseData(
         field: ParseSize(
           size: FieldSize.def(),
           field: ParseKind(
-            field: ParseSyn.def(),
+            field: ParseId(
+              id: FieldId.def(),
+              field: ParseSyn.def(),
+            ),
           ),
         ),
       );
-      final List<(int, bool, List<int>, Option<(FieldKind, int)>, List<int>)> testData = [
+      final List<(int, bool, List<int>, Option<(FieldId, FieldKind, int)>, List<int>)> testData = [
         (01,  keepGo, [ 11,  12, syn, 40, 00], None(                       ), []),
-        (02,  keepGo, [ 00,  00,  02, 25, 26], Some((FieldKind.string,   2)), [25, 26]),
+        (02,  keepGo, [ 00,  00,  02, 25, 26], Some((FieldId(1), FieldKind.string,   2)), [25, 26]),
         (03, restart, [ 31, syn,  40, 00, 00], None(                       ), []),
         (04, restart, [ 00,  03,  44, 45, 46], None(                       ), []),
         (05,  keepGo, [syn,  40,  00, 00, 00], None(                       ), []),
@@ -50,28 +55,37 @@ void main() {
       for (final (step, restart, bytes, target, targetBytes) in testData) {
         log.debug('.parse | step: $step,  targetBytes.length: ${targetBytes.length}');
         if (restart) {
-          dataParse = ParseData(
+          parseData = ParseData(
             field: ParseSize(
               size: FieldSize.def(),
               field: ParseKind(
-                field: ParseSyn.def(),
+                field: ParseId(
+                id: FieldId.def(),
+                  field: ParseSyn.def(),
+                ),
               ),
             ),
           );
         }
-        switch (dataParse.parse(bytes)) {
-          case Some(value: (FieldKind kind, FieldSize size, Bytes resultBytes)):
-            final targetKind = target.unwrap().$1;
-            final targetSize = target.unwrap().$2;
+        switch (parseData.parse(bytes)) {
+          case Some(value: (FieldId id, FieldKind kind, FieldSize size, Bytes resultBytes)):
+            final targetId = target.unwrap().$1;
+            final targetKind = target.unwrap().$2;
+            final targetSize = target.unwrap().$3;
             expect(
               target,
               isA<Some>(),
               reason: 'step: $step \n result: Some() \n target: $target',
             );
             expect(
+              id,
+              targetId,
+              reason: 'step: $step \n result: $id \n target: $targetId',
+            );
+            expect(
               kind,
               targetKind,
-              reason: 'step: $step \n result: $kind \n target: $targetBytes',
+              reason: 'step: $step \n result: $kind \n target: $targetKind',
             );
             expect(
               size.len,

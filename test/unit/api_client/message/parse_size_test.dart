@@ -1,6 +1,8 @@
+import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
+import 'package:ext_rw/src/api_client/message/parse_id.dart';
 import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/parse_size.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
@@ -22,20 +24,23 @@ void main() {
       ParseSize sizeParse = ParseSize(
         size: FieldSize.def(),
         field: ParseKind(
-          field: ParseSyn.def(),
+          field: ParseId(
+            id: FieldId.def(),
+            field: ParseSyn.def(),
+            ),
         ),
       );
       final List<(int, bool, Some<Null>, List<int>, Option<int>, List<int>)> testData = [
-        (01,  keepGo, Some(null), [ 11,  12, syn, 40, 00], None( ), []),
+        (01,  keepGo, Some(null), [ 11,  12, syn, 00, 00, 00, 01, 40, 00], None( ), []),
         (02,  keepGo, Some(null), [ 00,  00,  02, 25, 26], Some(2), [25, 26]),
-        (03, restart, Some(null), [ 31, syn,  40, 00, 00], None( ), []),
+        (03, restart, Some(null), [ 31, syn,  00, 00, 00, 02, 40, 00, 00], None( ), []),
         (04, restart, Some(null), [ 00,  03,  44, 45, 46], None( ), []),
-        (05,  keepGo, Some(null), [syn,  40,  00, 00, 00], None( ), []),
+        (05,  keepGo, Some(null), [syn,  00, 00, 00, 01, 40,  00, 00, 00], None( ), []),
         (06,  keepGo, Some(null), [ 04,  62,  63, 64, 65], Some(4), [62,  63, 64, 65]),
-        (07, restart, Some(null), [syn,  40,  00, 00, 00], None( ), []),
+        (07, restart, Some(null), [syn,  00, 00, 00, 01, 40,  00, 00, 00], None( ), []),
         (08,  keepGo, Some(null), [ 10,  62,  63, 64, 65], Some(10), [62,  63, 64, 65]),
         (09,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(10), [66,  67,  68, 69, 70]),
-        (10, restart, Some(null), [syn,  40,  00, 00, 01], None( ), []),
+        (10, restart, Some(null), [syn,  00, 00, 00, 01, 40,  00, 00, 01], None( ), []),
         (11,  keepGo, Some(null), [ 02,  62,  63, 64, 65], Some(258), [62,  63, 64, 65]),
         (12,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
         (13,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
@@ -45,21 +50,24 @@ void main() {
           sizeParse = ParseSize(
             size: FieldSize.def(),
             field: ParseKind(
-              field: ParseSyn.def(),
+              field: ParseId(
+                id: FieldId.def(),
+                field: ParseSyn.def(),
+              ),
             ),
           );
         }
         switch (sizeParse.parse(bytes)) {
-          case Some<(FieldKind, FieldSize, List<int>)>(value: (FieldKind _, FieldSize size, Bytes resultBytes)):
+          case Some(value: (FieldId _, FieldKind _, FieldSize size, Bytes resultBytes)):
             expect(
               target,
               isA<Some>(),
               reason: 'step: $step \n result: ${isA<Some>()} \n target: $target',
             );
             expect(
-              size.len,
+              size.size,
               target.unwrap(),
-              reason: 'step: $step \n result: ${size.len} \n target: ${targetBytes.length}',
+              reason: 'step: $step \n result: ${size.size} \n target: ${targetBytes.length}',
             );
             expect(
               listEquals(resultBytes, targetBytes),

@@ -1,5 +1,5 @@
 ///
-/// Used to build / parse a start of the message
+/// Used as start of the message
 class FieldSyn {
   final int _syn;
   final int _len;
