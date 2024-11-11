@@ -261,6 +261,7 @@ class ApiRequest {
   Future<Result<bool, Failure>> _sendWeb(WebSocket socket, Bytes bytes) async {
     final message = MessageBuild(
       syn: FieldSyn.def(),
+      id: FieldId.def(),
       kind: FieldKind.string,
       size: FieldSize.def(),
       data: FieldData([]),
@@ -283,6 +284,7 @@ class ApiRequest {
   Future<Result<bool, Failure>> _send(Socket socket, Bytes bytes) async {
     final message = MessageBuild(
       syn: FieldSyn.def(),
+      id: FieldId.def(),
       kind: FieldKind.string,
       size: FieldSize.def(),
       data: FieldData([]),

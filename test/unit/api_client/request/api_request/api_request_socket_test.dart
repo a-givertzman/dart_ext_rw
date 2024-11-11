@@ -70,7 +70,7 @@ void main() {
           final (id, kind, size, data) = messageRcv.parse(bytes).unwrap();
           final messageSend = MessageBuild(
             syn: FieldSyn.def(),
-            id: 
+            id: FieldId.def(),
             kind: FieldKind.string,
             size: FieldSize.def(),
             data: FieldData([]),
