@@ -33,7 +33,7 @@ class FieldSize {
   int get size => _size;
   ///
   /// Returns bytes of specified [size] of specified [len]
-  Uint8List toBytes() => Uint8List(_len)..buffer.asByteData().setInt32(0, _size, _endian);
+  Uint8List get toBytes => Uint8List(_len)..buffer.asByteData().setInt32(0, _size, _endian);
   ///
   /// Returns length of the field `Size` in the bytes
   int get len => _len;

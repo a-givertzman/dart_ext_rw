@@ -1,4 +1,5 @@
 import 'package:ext_rw/src/api_client/message/field_data.dart';
+import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/field_syn.dart';
@@ -40,24 +41,27 @@ import 'package:ext_rw/src/api_client/message/message_parse.dart';
 ///     - .., ...
 class MessageBuild {
   final FieldSyn syn;
+  final FieldId id;
   final FieldKind kind;
   final FieldSize size;
   final FieldData data;
   ///
   /// # Returns MessageBuild instance
   /// - **in case of Sending**
+  ///   - [id] - unique identifier of sending message
   ///   - [kind] - Kind of sending message
   ///   - [size] - Size in bytes of the data
   ///   - [data] - Sending data
   MessageBuild({
     required this.syn,
+    required this.id,
     required this.kind,
     required this.size,
     required this.data,
   });
   ///
   /// Returns message built according to specified fields and [bytes]
-  List<int> build(Bytes bytes) {
-    return [syn.syn, kind.kind, ...FieldSize(bytes.length, len: size.len).toBytes(), ...bytes];
+  List<int> build(Bytes bytes, {int id = 0}) {
+    return [syn.syn, ...FieldId(id).toBytes, kind.kind, ...FieldSize(bytes.length, len: size.len).toBytes, ...bytes];
   }
 }
