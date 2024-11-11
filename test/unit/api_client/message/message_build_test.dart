@@ -27,10 +27,11 @@ void main() {
         data: FieldData([]),
       );
       final List<(int, bool, int, List<int>, FieldKind, List<int>)> testData = [
-        (01,  keepGo, 123456, [25, 26],                                 FieldKind.string, [syn, 0x00, 0x01, 0xE2, 0x40, FieldKind.string.kind, 00, 00, 00, 02, 25, 26] ),
-        (02,  keepGo, 234567, [62, 63, 64, 65],                         FieldKind.string, [syn, 0x00, 0x03, 0x94, 0x47, FieldKind.string.kind, 00, 00, 00, 04, 62, 63, 64, 65]),
-        (03, restart, 345678, [62, 63, 64, 65, 66, 67, 68, 69, 70, 71], FieldKind.uint16, [syn, 0x00, 0x05, 0x46, 0x4E, FieldKind.uint16.kind, 00, 00, 00, 10, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
-        (04, restart, 456789, [for(var i=62; i<=319; i+=1) i],          FieldKind.int64,  [syn, 0x00, 0x06, 0xF8, 0x55, FieldKind.int64.kind,  00, 00, 01, 02, 62, 63, ...[for(var i=64; i<=317; i+=1) i], 318, 319]),
+        (01,  keepGo, 3755744309, [25, 26],                                 FieldKind.string, [syn, 0xDF, 0xDC, 0x1C, 0x35, FieldKind.string.kind, 00, 00, 00, 02, 25, 26] ),
+        (02,  keepGo, 1981952532, [62, 63, 64, 65],                         FieldKind.string, [syn, 0x76, 0x22, 0x32, 0x14, FieldKind.string.kind, 00, 00, 00, 04, 62, 63, 64, 65]),
+        (03, restart,  208151755, [62, 63, 64, 65, 66, 67, 68, 69, 70, 71], FieldKind.uint16, [syn, 0x0C, 0x68, 0x24, 0xCB, FieldKind.uint16.kind, 00, 00, 00, 10, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
+        (04, restart, 2729228274, [for(var i=62; i<=319; i+=1) i],          FieldKind.int64,  [syn, 0xA2, 0xAC, 0xB7, 0xF2, FieldKind.int64.kind,  00, 00, 01, 02, 62, 63, ...[for(var i=64; i<=317; i+=1) i], 318, 319]),
+        (04, restart, 4294967295, [for(var i=62; i<=319; i+=1) i],          FieldKind.int64,  [syn, 0xFF, 0xFF, 0xFF, 0xFF, FieldKind.int64.kind,  00, 00, 01, 02, 62, 63, ...[for(var i=64; i<=317; i+=1) i], 318, 319]),
       ];
       for (final (step, restart, id, bytes, kind, target) in testData) {
         if (restart) {
@@ -54,3 +55,7 @@ void main() {
     });
   });
 }
+// 12345678901  0xDF DC 1C 35
+// 23456789012  0x76 22 32 14
+// 34567890123  0x0C 68 24 CB
+// 45678901234  0xA2 AC B7 F2
