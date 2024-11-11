@@ -2,13 +2,15 @@ import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
+import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 ///
 /// Extracting `payload` part from the input bytes
 class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, FieldSize, Bytes)>> {
+  final _log = const Log('ParseData');
   final MessageParse<Bytes, Option<(FieldId, FieldKind, FieldSize, Bytes)>> _field;
   final Bytes _buf = [];
-  _KindAndSize? _kindSize;
+  _Parsed? _parsed;
   ///
   /// # Returns ParseData new instance
   /// - **in case of Receiving**
@@ -22,13 +24,14 @@ class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
   /// - [input] input bytes, can be passed multiple times, until required payload length is riched
   @override
   Option<(FieldId, FieldKind, FieldSize, Bytes)> parse(Bytes input) {
-    final kindSize = _kindSize;
+    final kindSize = _parsed;
     if (kindSize == null) {
       return switch (_field.parse(input)) {
         Some(value: (FieldId id, FieldKind kind, FieldSize size, Bytes bytes)) => () {
-          _kindSize = _KindAndSize(id, kind, size);
-          if (bytes.length >= size.len) {
-            _buf.addAll(bytes.sublist(0, size.len)); 
+          _parsed = _Parsed(id, kind, size);
+          if (bytes.length >= size.size) {
+            _buf.addAll(bytes.sublist(0, size.size)); 
+            _log.debug('.parse | bytes: $bytes');
             return Some((id, kind, size, _buf));
           } else {
             _buf.addAll(bytes); 
@@ -36,7 +39,6 @@ class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
           }
         }() as Option<(FieldId, FieldKind, FieldSize, Bytes)>,
         None() => () {
-          // _buf = input;
           return None();
         }(),
       };
@@ -63,9 +65,9 @@ class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
 }
 ///
 /// Just contains received kind & size
-class _KindAndSize {
+class _Parsed {
   final FieldId id;
   final FieldKind kind;
   final FieldSize size;
-  _KindAndSize(this.id, this.kind, this.size);
+  _Parsed(this.id, this.kind, this.size);
 }

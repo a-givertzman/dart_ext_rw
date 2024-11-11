@@ -3,11 +3,13 @@ import 'dart:io';
 
 import 'package:ext_rw/ext_rw.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
+import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/field_syn.dart';
 import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:ext_rw/src/api_client/message/parse_data.dart';
+import 'package:ext_rw/src/api_client/message/parse_id.dart';
 import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/parse_size.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
@@ -58,11 +60,14 @@ void main() {
             field: ParseSize(
               size: FieldSize.def(),
               field: ParseKind(
-                field: ParseSyn.def(),
+                field: ParseId(
+                  id: FieldId.def(),
+                  field: ParseSyn.def(),
+                ),
               ),
             ),
           );
-          final (kind, size, data) = messageRcv.parse(bytes).unwrap();
+          final (id, kind, size, data) = messageRcv.parse(bytes).unwrap();
           final messageSend = MessageBuild(
             syn: FieldSyn.def(),
             kind: FieldKind.string,

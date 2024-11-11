@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/field_syn.dart';
+import 'package:ext_rw/src/api_client/message/parse_id.dart';
 import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/message/parse_size.dart';
@@ -178,9 +180,10 @@ class ApiRequest {
     }
   }
   ///
-  Result<List<int>, Failure> _parse(ParseData message, Bytes bytes) {
+  /// Returns message extracted from [bytes]
+  Result<(FieldId, List<int>), Failure> _parse(ParseData message, Bytes bytes) {
     switch (message.parse(bytes)) {
-      case Some(value: (FieldKind kind, FieldSize _, Bytes data)):
+      case Some(value: (FieldId id, FieldKind kind, FieldSize _, Bytes data)):
         return switch (kind) {
           FieldKind.any => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
           FieldKind.empty => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
@@ -194,7 +197,7 @@ class ApiRequest {
           FieldKind.int64 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
           FieldKind.f32 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
           FieldKind.f64 => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
-          FieldKind.string => Ok(data),
+          FieldKind.string => Ok((id, data)),
           FieldKind.timestamp => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
           FieldKind.duration => Err(Failure(message: '._read | Socket message of kind "$kind" - is not supported, was skipped', stackTrace: StackTrace.current)),
         };
@@ -210,7 +213,10 @@ class ApiRequest {
       field: ParseSize(
         size: FieldSize.def(),
         field: ParseKind(
-          field: ParseSyn.def(),
+          field: ParseId(
+            id: FieldId.def(),
+            field: ParseSyn.def(),
+          ),
         ),
       ),
     );
@@ -231,9 +237,9 @@ class ApiRequest {
         ).first;
       while (maxChunks-- > 0) {
         final result = _parse(message, bytes);
-        if (result is Ok) {
+        if (result case Ok(value: (FieldId _, Bytes bytes))) {
           _closeSocket(socket);
-          return result;
+          return Ok(bytes);
         }
       }
       _closeSocket(socket);

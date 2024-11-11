@@ -35,22 +35,22 @@ void main() {
         ),
       );
       final List<(int, bool, List<int>, Option<(FieldId, FieldKind, int)>, List<int>)> testData = [
-        (01,  keepGo, [ 11,  12, syn, 40, 00], None(                       ), []),
-        (02,  keepGo, [ 00,  00,  02, 25, 26], Some((FieldId(1), FieldKind.string,   2)), [25, 26]),
-        (03, restart, [ 31, syn,  40, 00, 00], None(                       ), []),
+        (01,  keepGo, [ 11,  12, syn, 00, 00, 00, 11, 40, 00], None(                       ), []),
+        (02,  keepGo, [ 00,  00,  02, 25, 26], Some((FieldId(11), FieldKind.string,   2)), [25, 26]),
+        (03, restart, [ 31, syn,  00, 00, 00, 12, 40, 00, 00], None(                       ), []),
         (04, restart, [ 00,  03,  44, 45, 46], None(                       ), []),
-        (05,  keepGo, [syn,  40,  00, 00, 00], None(                       ), []),
-        (06,  keepGo, [ 04,  62,  63, 64, 65], Some((FieldKind.string,   4)), [62,  63, 64, 65]),
-        (07, restart, [syn,  40,  00, 00, 00], None(                       ), []),
+        (05,  keepGo, [syn,  00,  00, 00, 13, 40,  00, 00, 00], None(                       ), []),
+        (06,  keepGo, [ 04,  62,  63, 64, 65], Some((FieldId(13), FieldKind.string,   4)), [62,  63, 64, 65]),
+        (07, restart, [syn,  00,  00, 00, 14, 40,  00, 00, 00], None(                       ), []),
         (08,  keepGo, [ 10,  62,  63, 64, 65], None(                       ), []),
         (09,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
-        (09,  keepGo, [ 71                  ], Some((FieldKind.string,  10)), [62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
-        (10, restart, [syn,  40,  00, 00, 01], None(                       ), []),
+        (09,  keepGo, [ 71                  ], Some((FieldId(14), FieldKind.string,  10)), [62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
+        (10, restart, [syn,  00,  00, 00, 15, 40,  00, 00, 01], None(                       ), []),
         (11,  keepGo, [ 02,  62,  63, 64, 65], None(                       ), []),
         (12,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
         (13,  keepGo, [ 71,  72,  73, 74, 75], None(                       ), []),
         (14,  keepGo, [for(var i=76; i<=316; i+=1) i], None(                ), []),
-        (15,  keepGo, [317, 318, 319        ], Some((FieldKind.string,  258)), [for(var i=62; i<=319; i+=1) i]),
+        (15,  keepGo, [317, 318, 319        ], Some((FieldId(15), FieldKind.string,  258)), [for(var i=62; i<=319; i+=1) i]),
       ];
       for (final (step, restart, bytes, target, targetBytes) in testData) {
         log.debug('.parse | step: $step,  targetBytes.length: ${targetBytes.length}');
@@ -88,9 +88,9 @@ void main() {
               reason: 'step: $step \n result: $kind \n target: $targetKind',
             );
             expect(
-              size.len,
+              size.size,
               targetSize,
-              reason: 'step: $step \n result: $size.len \n target: ${target.unwrap()}',
+              reason: 'step: $step \n result: ${size.size} \n target: $targetSize',
             );
             expect(
               listEquals(resultBytes, targetBytes),
