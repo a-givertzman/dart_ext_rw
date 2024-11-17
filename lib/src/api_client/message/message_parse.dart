@@ -35,6 +35,9 @@ abstract class MessageParse<I, T> {
   ///
   /// Returns T if parsed
   T parse(I input);
+  ///
+  /// Resets state to the initial
+  void reset();
 }
 ///
 /// Input bytes type

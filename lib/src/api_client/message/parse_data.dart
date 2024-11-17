@@ -10,7 +10,7 @@ class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
   final _log = const Log('ParseData');
   final MessageParse<Bytes, Option<(FieldId, FieldKind, FieldSize, Bytes)>> _field;
   final Bytes _buf = [];
-  _Parsed? _parsed;
+  _Value? _value;
   ///
   /// # Returns ParseData new instance
   /// - **in case of Receiving**
@@ -24,14 +24,15 @@ class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
   /// - [input] input bytes, can be passed multiple times, until required payload length is riched
   @override
   Option<(FieldId, FieldKind, FieldSize, Bytes)> parse(Bytes input) {
-    final kindSize = _parsed;
-    if (kindSize == null) {
+    final value = _value;
+    if (value == null) {
       return switch (_field.parse(input)) {
         Some(value: (FieldId id, FieldKind kind, FieldSize size, Bytes bytes)) => () {
-          _parsed = _Parsed(id, kind, size);
+          _value = _Value(id, kind, size);
           if (bytes.length >= size.size) {
             _buf.addAll(bytes.sublist(0, size.size)); 
             _log.debug('.parse | bytes: $bytes');
+            reset();
             return Some((id, kind, size, _buf));
           } else {
             _buf.addAll(bytes); 
@@ -45,12 +46,13 @@ class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
     } else {
       return switch (_field.parse(input)) {
         Some(value: (FieldId _, FieldKind _, FieldSize _, Bytes bytes)) => () {
-          if ((_buf.length + bytes.length) >= kindSize.size.size) {
-            if (_buf.length < kindSize.size.size) {
-              final remainder = kindSize.size.size - _buf.length;
+          if ((_buf.length + bytes.length) >= value.size.size) {
+            if (_buf.length < value.size.size) {
+              final remainder = value.size.size - _buf.length;
               _buf.addAll(bytes.sublist(0, remainder));
             }
-            return Some((kindSize.id, kindSize.kind, kindSize.size, _buf));
+            reset();
+            return Some((value.id, value.kind, value.size, _buf));
           } else {
             _buf.addAll(bytes);
             return None();
@@ -62,12 +64,20 @@ class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
       };
     }
   }
+  //
+  //
+  @override
+  void reset() {
+    _field.reset();
+    // _buf.clear();
+    _value = null;
+  }
 }
 ///
 /// Just contains received kind & size
-class _Parsed {
+class _Value {
   final FieldId id;
   final FieldKind kind;
   final FieldSize size;
-  _Parsed(this.id, this.kind, this.size);
+  _Value(this.id, this.kind, this.size);
 }

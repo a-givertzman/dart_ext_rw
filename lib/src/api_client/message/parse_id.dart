@@ -56,4 +56,12 @@ class ParseId implements MessageParse<Bytes, Option<(FieldId, Bytes)>> {
       return Some((FieldId(id_), input));
     }
   }
+  //
+  //
+  @override
+  void reset() {
+    _field.reset();
+    _buf.clear();
+    _id = null;
+  }
 }

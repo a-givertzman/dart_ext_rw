@@ -6,7 +6,7 @@ import 'package:hmi_core/hmi_core_option.dart';
 /// - Used to identify a start of the message
 class ParseSyn implements MessageParse<Bytes, Option<Bytes>> {
   final FieldSyn _syn;
-  int _start = -1;
+  Option _value = None();
   ///
   /// Returns ParseSyn new instance
   /// - [syn] - some byte identyfies a start of the message,
@@ -26,15 +26,22 @@ class ParseSyn implements MessageParse<Bytes, Option<Bytes>> {
   /// Returns Ok if `Syn` parsed or Err
   @override
   Option<Bytes> parse(Bytes bytes) {
-    if (_start < 0) {
-      _start = bytes.indexWhere((b) => b == _syn.syn);
-      if (_start >= 0) {
-        return Some(bytes.sublist(_start + 1));
-      } else {
-        return None();
-      }
-    } else {
+    switch (_value) {
+      case Some():
         return Some(bytes);
+      case None():
+        final start = bytes.indexWhere((b) => b == _syn.syn);
+        if (start >= 0) {
+          return Some(bytes.sublist(start + 1));
+        } else {
+          return None();
+        }
     }
+  }
+  //
+  //
+  @override
+  void reset() {
+    _value = None();    
   }
 }

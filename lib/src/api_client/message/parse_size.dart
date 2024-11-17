@@ -12,7 +12,7 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
   final MessageParse<dynamic, Option<(FieldId, FieldKind, Bytes)>> _field;
   final FieldSize _confSize;
   Bytes _buf = [];
-  _IdAndKindAndSize? _idAndKindAndSize;
+  _Value? _value;
   ///
   /// # Returns ParseSize new instance
   /// - **in case of Receiving**
@@ -30,15 +30,15 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
   /// - if `Size` is detected: returns `Kind`, `Size` and all bytes following the `Size`
   @override
   Option<(FieldId, FieldKind, FieldSize, Bytes)> parse(Bytes input) {
-    final idAndKindAndSize = _idAndKindAndSize;
-    if (idAndKindAndSize == null) {
+    final value = _value;
+    if (value == null) {
       _buf = [..._buf, ...input];
       switch (_field.parse(_buf)) {
         case Some(value: (FieldId id, FieldKind kind, Bytes bytes)):
           if (bytes.length >= _confSize.len) {
             return switch (_confSize.fromBytes(bytes.sublist(0, _confSize.len))) {
               Ok(value:final size) => () {
-                _idAndKindAndSize = _IdAndKindAndSize(id, kind, FieldSize(size));
+                _value = _Value(id, kind, FieldSize(size));
                 _log.debug('.parse | bytes: $bytes');
                 return Some((id, kind, FieldSize(size), bytes.sublist(_confSize.len)));
               }() as Option<(FieldId, FieldKind, FieldSize, Bytes)>,
@@ -55,15 +55,23 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
           return None();
       }
     } else {
-      return Some((idAndKindAndSize.id, idAndKindAndSize.kind, idAndKindAndSize.size, input));
+      return Some((value.id, value.kind, value.size, input));
     }
+  }
+  //
+  //
+  @override
+  void reset() {
+    _field.reset();
+    _buf.clear();
+    _value = null;
   }
 }
 ///
 /// Just holds received id & kind
-class _IdAndKindAndSize {
+class _Value {
   final FieldId id;
   final FieldKind kind;
   final FieldSize size;
-  _IdAndKindAndSize(this.id, this.kind, this.size);
+  _Value(this.id, this.kind, this.size);
 }
