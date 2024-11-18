@@ -30,22 +30,24 @@ void main() {
             ),
         ),
       );
-      final List<(int, bool, Some<Null>, List<int>, Option<int>, List<int>)> testData = [
-        (01,  keepGo, Some(null), [ 11,  12, syn, 00, 00, 00, 01, 40, 00], None( ), []),
-        (02,  keepGo, Some(null), [ 00,  00,  02, 25, 26], Some(2), [25, 26]),
-        (03, restart, Some(null), [ 31, syn,  00, 00, 00, 02, 40, 00, 00], None( ), []),
-        (04, restart, Some(null), [ 00,  03,  44, 45, 46], None( ), []),
-        (05,  keepGo, Some(null), [syn,  00, 00, 00, 01, 40,  00, 00, 00], None( ), []),
-        (06,  keepGo, Some(null), [ 04,  62,  63, 64, 65], Some(4), [62,  63, 64, 65]),
-        (07, restart, Some(null), [syn,  00, 00, 00, 01, 40,  00, 00, 00], None( ), []),
-        (08,  keepGo, Some(null), [ 10,  62,  63, 64, 65], Some(10), [62,  63, 64, 65]),
-        (09,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(10), [66,  67,  68, 69, 70]),
-        (10, restart, Some(null), [syn,  00, 00, 00, 01, 40,  00, 00, 01], None( ), []),
-        (11,  keepGo, Some(null), [ 02,  62,  63, 64, 65], Some(258), [62,  63, 64, 65]),
-        (12,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
-        (13,  keepGo, Some(null), [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
+      final List<(int, bool, List<int>, Option<int>, List<int>)> testData = [
+        (01,  keepGo, [ 11,  12, syn, 00, 00, 00, 01, 40, 00], None( ), []),
+        (02,  keepGo, [ 00,  00,  02, 25, 26], Some(2), [25, 26]),
+        (03, restart, [ 31, syn,  00, 00, 00, 02, 40, 00, 00], None( ), []),
+        (04, restart, [ 00,  03,  44, 45, 46], None( ), []),
+        (05,  keepGo, [syn,  00, 00, 00, 01, 40,  00, 00, 00], None( ), []),
+        (06,  keepGo, [ 04,  62,  63, 64, 65], Some(4), [62,  63, 64, 65]),
+        (07, restart, [syn,  00, 00, 00, 01, 40,  00, 00, 00], None( ), []),
+        (08,  keepGo, [ 10,  62,  63, 64, 65], Some(10), [62,  63, 64, 65]),
+        (09,  keepGo, [ 66,  67,  68, 69, 70], Some(10), [66,  67,  68, 69, 70]),
+        (10, restart, [syn,  00, 00, 00, 01, 40,  00, 00, 01], None( ), []),
+        (11,  keepGo, [ 02,  62,  63, 64, 65], Some(258), [62,  63, 64, 65]),
+        (12,  keepGo, [ 66,  67,  68, 69, 70], Some(258), [66,  67,  68, 69, 70]),
+        (13,  keepGo, [ 71,  72,  73, 74, 75], Some(258), [71,  72,  73, 74, 75]),
+        (17, restart, [syn,  00, 00, 00, 77, 02,  00, 00, 00, 9,  62, 63, 64, 65, 66, 67, 68, 69, 70, syn, 00, 00, 00, 88, 08, 00, 00, 00, 02, 25, 26], Some(9), [62, 63, 64, 65, 66, 67, 68, 69, 70, syn, 00, 00, 00, 88, 08, 00, 00, 00, 02, 25, 26]),
+        (18,  keepGo, [], Some(9), []),
       ];
-      for (final (step, restart, _, bytes, target, targetBytes) in testData) {
+      for (final (step, restart, bytes, target, targetBytes) in testData) {
         if (restart) {
           sizeParse = ParseSize(
             size: FieldSize.def(),

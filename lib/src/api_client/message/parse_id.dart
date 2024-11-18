@@ -10,7 +10,7 @@ class ParseId implements MessageParse<Bytes, Option<(FieldId, Bytes)>> {
   final MessageParse<Bytes, Option<Bytes>> _field;
   final FieldId _confId;
   Bytes _buf = [];
-  int? _id;
+  Option<FieldId> _value = None();
   ///
   /// # Returns ParseId new instance
   /// - **in case of Receiving**
@@ -28,32 +28,33 @@ class ParseId implements MessageParse<Bytes, Option<(FieldId, Bytes)>> {
   /// - if `Id` is detected: returns `Id` and all bytes following the `Id`
   @override
   Option<(FieldId, Bytes)> parse(Bytes input) {
-    final id_ = _id;
-    if (id_ == null) {
-      _buf = [..._buf, ...input];
-      switch (_field.parse(_buf)) {
-        case Some(value: Bytes bytes):
-          if (bytes.length >= _confId.len) {
-            return switch (_confId.fromBytes(bytes.sublist(0, _confId.len))) {
-              Ok(value: final id) => () {
-                _id = id;
-                _log.debug('.parse | bytes: $bytes');
-                return Some((FieldId(id), bytes.sublist(_confId.len)));
-              }() as Option<(FieldId, Bytes)>,
-              Err() => () {
-                _buf = bytes;
-                return None();
-              }(),
-            };
-          } else {
-            _buf = bytes;
-            return None();
-          }
-        case None():
-          return None();
-      }
-    } else {
-      return Some((FieldId(id_), input));
+    final buf = [..._buf, ...input];
+    _buf.clear();
+    switch (_field.parse(buf)) {
+      case Some(value: Bytes bytes):
+        switch (_value) {
+          case Some<FieldId>(:final value):
+            return Some((value, bytes));
+          case None():
+            if (bytes.length >= _confId.len) {
+              return switch (_confId.fromBytes(bytes.sublist(0, _confId.len))) {
+                Ok(value: final id) => () {
+                  _value = Some(FieldId(id));
+                  _log.debug('.parse | bytes: $bytes');
+                  return Some((FieldId(id), bytes.sublist(_confId.len)));
+                }() as Option<(FieldId, Bytes)>,
+                Err() => () {
+                  _buf = bytes;
+                  return None();
+                }(),
+              };
+            } else {
+              _buf = bytes;
+              return None();
+            }
+        }
+      case None():
+        return None();
     }
   }
   //
@@ -62,6 +63,6 @@ class ParseId implements MessageParse<Bytes, Option<(FieldId, Bytes)>> {
   void reset() {
     _field.reset();
     _buf.clear();
-    _id = null;
+    _value = None();
   }
 }

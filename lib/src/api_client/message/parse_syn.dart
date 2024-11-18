@@ -30,9 +30,10 @@ class ParseSyn implements MessageParse<Bytes, Option<Bytes>> {
       case Some():
         return Some(bytes);
       case None():
-        final start = bytes.indexWhere((b) => b == _syn.syn);
-        if (start >= 0) {
-          return Some(bytes.sublist(start + 1));
+        final pos = bytes.indexWhere((b) => b == _syn.syn);
+        if (pos >= 0) {
+          _value = Some(null);
+          return Some(bytes.sublist(pos + 1));
         } else {
           return None();
         }

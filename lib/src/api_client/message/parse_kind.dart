@@ -8,7 +8,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// Extracting `kind` part from the input bytes
 class ParseKind implements MessageParse<Bytes, Option<(FieldId, FieldKind, Bytes)>> {
   final MessageParse<Bytes, Option<(FieldId, Bytes)>> _field;
-  _Value? _value;
+  Option<_Value> _value = None();
   ///
   /// # Returns ParseKind new instance
   /// - **in case of Receiving**
@@ -23,37 +23,35 @@ class ParseKind implements MessageParse<Bytes, Option<(FieldId, FieldKind, Bytes
   /// - if `Kind` is detected: returns `Kind` and all bytes following the `Kind`
   @override
   Option<(FieldId, FieldKind, Bytes)> parse(Bytes input) {
-    final value = _value;
-    if (value == null) {
-      switch (_field.parse(input)) {
-        case Some(value : (final FieldId id, final Bytes bytes)):
-          final raw = bytes.firstOrNull;
-          if (raw != null) {
-            return switch (FieldKind.from(raw)) {
+    switch (_field.parse(input)) {
+      case Some(value : (final FieldId id, final Bytes bytes)):
+        switch (_value) {
+          case Some<_Value>(:final value):
+            return Some((id, value.kind, bytes));
+          case None():
+            return switch (FieldKind.from(bytes.firstOrNull)) {
               Ok<FieldKind, Failure>(value: final kind) => () {
-                _value = _Value(id, kind);
+                _value = Some(_Value(id, kind));
                 return Some((id, kind, bytes.sublist(1)));
               }() as Option<(FieldId, FieldKind, Bytes)>,
               Err<FieldKind, Failure>() => () {
                 return None();
               }(),
             };
-          } else {
-            return None();
-          }
-        case None():
-          return None();
-      }
-    } else {
-      return Some((value.id, value.kind, input));
+        }
+      case None():
+        return None();
     }
+    // } else {
+    //   return Some((value.id, value.kind, input));
+    // }
   }
   //
   //
   @override
   void reset() {
     _field.reset();
-    _value = null;
+    _value = None();
   }
 }
 ///

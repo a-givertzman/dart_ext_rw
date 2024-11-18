@@ -44,13 +44,15 @@ void main() {
         (07, restart, [syn,  00,  00, 00, 14, 40,  00, 00, 00], None(                       ), []),
         (08,  keepGo, [ 10,  62,  63, 64, 65], None(                       ), []),
         (09,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
-        (09,  keepGo, [ 71                  ], Some((FieldId(14), FieldKind.string,  10)), [62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
-        (10, restart, [syn,  00,  00, 00, 15, 40,  00, 00, 01], None(                       ), []),
-        (11,  keepGo, [ 02,  62,  63, 64, 65], None(                       ), []),
-        (12,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
-        (13,  keepGo, [ 71,  72,  73, 74, 75], None(                       ), []),
-        (14,  keepGo, [for(var i=76; i<=316; i+=1) i], None(                ), []),
-        (15,  keepGo, [317, 318, 319        ], Some((FieldId(15), FieldKind.string,  258)), [for(var i=62; i<=319; i+=1) i]),
+        (10,  keepGo, [ 71                  ], Some((FieldId(14), FieldKind.string,  10)), [62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
+        (11, restart, [syn,  00,  00, 00, 15, 40,  00, 00, 01], None(                       ), []),
+        (12,  keepGo, [ 02,  62,  63, 64, 65], None(                       ), []),
+        (13,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
+        (14,  keepGo, [ 71,  72,  73, 74, 75], None(                       ), []),
+        (15,  keepGo, [for(var i=76; i<=316; i+=1) i], None(                ), []),
+        (16,  keepGo, [317, 318, 319        ], Some((FieldId(15), FieldKind.string,  258)), [for(var i=62; i<=319; i+=1) i]),
+        (17, restart, [syn,  00, 00, 00, 77, 40,  00, 00, 00, 9,  62, 63, 64, 65, 66, 67, 68, 69, 70, syn, 00, 00, 00, 88, 08, 00, 00, 00, 03, 25, 26, 27], Some((FieldId(77), FieldKind.string, 9)), [62,  63, 64, 65, 66,  67,  68, 69, 70]),
+        (18,  keepGo, [], Some((FieldId(88), FieldKind.bool, 3)), [25, 26, 27]),
       ];
       for (final (step, restart, bytes, target, targetBytes) in testData) {
         log.debug('.parse | step: $step,  targetBytes.length: ${targetBytes.length}');
@@ -69,9 +71,9 @@ void main() {
         }
         switch (parseData.parse(bytes)) {
           case Some(value: (FieldId id, FieldKind kind, FieldSize size, Bytes resultBytes)):
-            final targetId = target.unwrap().$1;
-            final targetKind = target.unwrap().$2;
-            final targetSize = target.unwrap().$3;
+            final targetId = target.expect('Step: $step').$1;
+            final targetKind = target.expect('Step: $step').$2;
+            final targetSize = target.expect('Step: $step').$3;
             expect(
               target,
               isA<Some>(),

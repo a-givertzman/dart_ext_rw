@@ -54,6 +54,8 @@ void main() {
         (11,  keepGo, [ 02,  62,  63, 64, 65], Some((FieldId(99), FieldKind.int64 )), [02, 62, 63, 64, 65]),
         (12,  keepGo, [ 66,  67,  68, 69, 70], Some((FieldId(99), FieldKind.int64 )), [66, 67, 68, 69, 70]),
         (13,  keepGo, [ 66,  67,  68, 69, 70], Some((FieldId(99), FieldKind.int64 )), [66, 67, 68, 69, 70]),
+        (17, restart, [syn,  00, 00, 00, 77, 02,  00, 00, 00, 9,  62, 63, 64, 65, 66, 67, 68, 69, 70, syn, 00, 00, 00, 88, 08, 00, 00, 00, 02, 25, 26], Some((FieldId(77), FieldKind.bytes)), [00, 00, 00, 9,  62, 63, 64, 65, 66, 67, 68, 69, 70, syn, 00, 00, 00, 88, 08, 00, 00, 00, 02, 25, 26]),
+        (18,  keepGo, [], Some((FieldId(77), FieldKind.bytes)), []),
       ];
       for (final (step, restart, bytes, targetIdKind, targetBytes) in testData) {
         if (restart) {

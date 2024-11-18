@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_id.dart';
@@ -48,14 +49,20 @@ class Message {
       ),
     );
     _subscription = _socket.listen(
-      (Bytes event) {
+      (Uint8List event) {
         _log.debug('.listen.onData | Event: $event');
-        switch (message.parse(event)) {
-          case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
-            _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
-            _controller.add((id, kind, bytes));
-          case None():
-            _log.debug('.listen.onData | None');
+        Uint8List input = event;
+        bool isSome = true;
+        while (isSome) {
+          switch (message.parse(input)) {
+            case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
+              _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
+              _controller.add((id, kind, bytes));
+              input = Uint8List(0);
+            case None():
+              isSome = false;
+              _log.debug('.listen.onData | None');
+          }
         }
       },
       onError: (err) {

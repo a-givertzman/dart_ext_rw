@@ -30,11 +30,12 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
   /// - if `Size` is detected: returns `Kind`, `Size` and all bytes following the `Size`
   @override
   Option<(FieldId, FieldKind, FieldSize, Bytes)> parse(Bytes input) {
-    final value = _value;
-    if (value == null) {
-      _buf = [..._buf, ...input];
-      switch (_field.parse(_buf)) {
-        case Some(value: (FieldId id, FieldKind kind, Bytes bytes)):
+    final buf = [..._buf, ...input];
+    _buf.clear();
+    switch (_field.parse(buf)) {
+      case Some(value: (FieldId id, FieldKind kind, Bytes bytes)):
+        final value = _value;
+        if (value == null) {
           if (bytes.length >= _confSize.len) {
             return switch (_confSize.fromBytes(bytes.sublist(0, _confSize.len))) {
               Ok(value:final size) => () {
@@ -51,11 +52,11 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
             _buf = bytes;
             return None();
           }
-        case None():
-          return None();
-      }
-    } else {
-      return Some((value.id, value.kind, value.size, input));
+        } else {
+          return Some((value.id, value.kind, value.size, bytes));
+        }
+      case None():
+        return None();
     }
   }
   //
