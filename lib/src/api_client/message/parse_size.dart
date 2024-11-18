@@ -12,7 +12,7 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
   final MessageParse<dynamic, Option<(FieldId, FieldKind, Bytes)>> _field;
   final FieldSize _confSize;
   Bytes _buf = [];
-  _Value? _value;
+  Option<FieldSize> _value = None();
   ///
   /// # Returns ParseSize new instance
   /// - **in case of Receiving**
@@ -34,26 +34,26 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
     _buf.clear();
     switch (_field.parse(buf)) {
       case Some(value: (FieldId id, FieldKind kind, Bytes bytes)):
-        final value = _value;
-        if (value == null) {
-          if (bytes.length >= _confSize.len) {
-            return switch (_confSize.fromBytes(bytes.sublist(0, _confSize.len))) {
-              Ok(value:final size) => () {
-                _value = _Value(id, kind, FieldSize(size));
-                _log.debug('.parse | bytes: $bytes');
-                return Some((id, kind, FieldSize(size), bytes.sublist(_confSize.len)));
-              }() as Option<(FieldId, FieldKind, FieldSize, Bytes)>,
-              Err() => () {
-                _buf = bytes;
-                return None();
-              }(),
-            };
-          } else {
-            _buf = bytes;
-            return None();
-          }
-        } else {
-          return Some((value.id, value.kind, value.size, bytes));
+        switch (_value) {
+          case Some<FieldSize>(value: final size):
+            return Some((id, kind, size, bytes));
+          case None():
+            if (bytes.length >= _confSize.len) {
+              return switch (_confSize.fromBytes(bytes.sublist(0, _confSize.len))) {
+                Ok(value:final size) => () {
+                  _value = Some(FieldSize(size));
+                  _log.debug('.parse | bytes: $bytes');
+                  return Some((id, kind, FieldSize(size), bytes.sublist(_confSize.len)));
+                }() as Option<(FieldId, FieldKind, FieldSize, Bytes)>,
+                Err() => () {
+                  _buf = bytes;
+                  return None();
+                }(),
+              };
+            } else {
+              _buf = bytes;
+              return None();
+            }
         }
       case None():
         return None();
@@ -65,14 +65,6 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
   void reset() {
     _field.reset();
     _buf.clear();
-    _value = null;
+    _value = None();
   }
-}
-///
-/// Just holds received id & kind
-class _Value {
-  final FieldId id;
-  final FieldKind kind;
-  final FieldSize size;
-  _Value(this.id, this.kind, this.size);
 }
