@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_id.dart';
@@ -47,6 +46,8 @@ class Request {
             m.close();
             _fetches.remove(id.id);
           }
+        } else {
+          _log.error('.listen.onData | id \'${id.id}\' - not found');
         }
       },
       onError: (err) {
@@ -62,16 +63,16 @@ class Request {
   ///
   ///
   Future<Bytes> fetch(String sql) {
-    final newId = id++;
-    if (!_fetches.containsKey(newId)) {
-      _log.debug('.fetch | id: $id,  sql: $sql');
+    id++;
+    if (!_fetches.containsKey(id)) {
+      _log.debug('.fetch | id: \'$id\',  sql: $sql');
       final StreamController<Bytes> controller = StreamController();
-      _fetches[newId] = controller;
+      _fetches[id] = controller;
       final bytes = utf8.encode(sql);
       _message.add(id, bytes);
       return controller.stream.first;
     }
-    throw Exception('.fetch | Duplicated id: $id');
+    throw Exception('.fetch | Duplicated id \'$id\'');
   }
   ///
   ///
@@ -116,19 +117,19 @@ void main() {
               socket.listen(
                 (event) {
                   log.debug('.ServerSocket.listen.onData | event (${event.length}): $event');
-                  Uint8List input = event;
+                  Uint8List? input = event;
                   bool isSome = true;
                   while (isSome) {
-                    log.debug('.ServerSocket.listen.onData | input (${input.length}): $input');
+                    log.debug('.ServerSocket.listen.onData | input (${input?.length}): $input');
                     switch (message.parse(input)) {
                       case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
-                        log.debug('.ServerSocket.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
-                        sleep(Duration(milliseconds: 300));
+                        log.debug('.ServerSocket.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
+                        sleep(Duration(milliseconds: 500));
                         final reply = messageBuild.build(bytes, id: id.id);
                         socket.add(reply);
-                        input = Uint8List(0);
+                        input = null;
                       case None():
-                        log.debug('.ServerSocket.listen.onData | None');
+                        log.debug('.ServerSocket.listen.onData | Parsed | None');
                         isSome = false;
                     }
                   }
@@ -186,10 +187,11 @@ void main() {
         Message(socket),
       );
       List<Future> replies = [];
-      for (final _ in Iterable.generate(3)) {
-        final reply = request.fetch(query).then(
+      for (final i in Iterable.generate(10)) {
+        final reply = request.fetch('$query$i').then(
           (reply) {
-            log.debug('.request.fetch | reply: $reply');
+            log.info('.request.fetch | reply: $reply');
+            log.info('.request.fetch | reply text: ${String.fromCharCodes(reply)}');
           },
           onError: (err) {
             log.error('.request.fetch.onError | Error: $err');
@@ -199,6 +201,7 @@ void main() {
         replies.add(reply);
       }
       await Future.wait(replies);
+      log.info('.request | All (${replies.length}) replies finished');
       request.close();
     });
     ///

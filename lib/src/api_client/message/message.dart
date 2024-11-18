@@ -51,14 +51,14 @@ class Message {
     _subscription = _socket.listen(
       (Uint8List event) {
         _log.debug('.listen.onData | Event: $event');
-        Uint8List input = event;
+        Uint8List? input = event;
         bool isSome = true;
         while (isSome) {
           switch (message.parse(input)) {
             case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
               _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
               _controller.add((id, kind, bytes));
-              input = Uint8List(0);
+              input = null;
             case None():
               isSome = false;
               _log.debug('.listen.onData | None');
@@ -71,7 +71,7 @@ class Message {
         _socket.close();
       },
       onDone: () {
-        _log.debug('.listen.onDone | Done');
+        _log.warning('.listen.onDone | Done');
         _subscription?.cancel();
         _socket.close();
       },
