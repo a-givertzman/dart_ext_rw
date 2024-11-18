@@ -53,11 +53,11 @@ class Message {
     data: FieldData([]),
   );
   ///
-  ///
+  /// Extracting `id`, `kind` and `payload` parts from the socket stream
   Message(Socket socket) :
     _socket = socket;
   ///
-  ///
+  /// Returns a stream providing the extracted results
   Stream<(FieldId, FieldKind, Bytes)> get stream {
     final message = ParseData(
       field: ParseSize(
@@ -101,13 +101,13 @@ class Message {
     return _controller.stream;
   }
   ///
-  ///
+  /// Sends bytes as built [Message] to the specified `socket`
   void add(id, Bytes bytes) {
     final message = _messageBuild.build(bytes, id: id);
     _socket.add(message);
   }
   ///
-  ///
+  /// Close the [stream] and `socket`
   Future close() async {
     await _subscription?.cancel();
     return _socket.close();
