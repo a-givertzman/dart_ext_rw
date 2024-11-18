@@ -28,7 +28,7 @@ const keepGo = false;
 ///
 class Request {
   final _log = Log('Request');
-  final Map<int, StreamController<Bytes>> _fetches = {};
+  final Map<int, StreamController<Bytes>> _queries = {};
   final Message _message;
   int id = 0;
   ///
@@ -39,12 +39,12 @@ class Request {
       (event) {
         final (FieldId id, FieldKind kind, Bytes bytes) = event;
         _log.debug('.listen.onData | Event | id: $id,  kind: $kind,  bytes: $bytes');
-        if (_fetches.containsKey(id.id)) {
-          final m = _fetches[id.id];
-          if (m != null) {
-            m.add(bytes);
-            m.close();
-            _fetches.remove(id.id);
+        if (_queries.containsKey(id.id)) {
+          final query = _queries[id.id];
+          if (query != null) {
+            query.add(bytes);
+            query.close();
+            _queries.remove(id.id);
           }
         } else {
           _log.error('.listen.onData | id \'${id.id}\' - not found');
@@ -64,10 +64,10 @@ class Request {
   ///
   Future<Bytes> fetch(String sql) {
     id++;
-    if (!_fetches.containsKey(id)) {
+    if (!_queries.containsKey(id)) {
       _log.debug('.fetch | id: \'$id\',  sql: $sql');
       final StreamController<Bytes> controller = StreamController();
-      _fetches[id] = controller;
+      _queries[id] = controller;
       final bytes = utf8.encode(sql);
       _message.add(id, bytes);
       return controller.stream.first;

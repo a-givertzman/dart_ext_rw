@@ -75,7 +75,7 @@ void main() {
             size: FieldSize.def(),
             data: FieldData([]),
           );
-          socket.add(messageSend.build(data));
+          socket.add(messageSend.build(data, id: id.id));
         });
       });
       address = ApiAddress(

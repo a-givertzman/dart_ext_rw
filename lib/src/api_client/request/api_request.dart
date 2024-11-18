@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:ext_rw/src/api_client/message/field_id.dart';
+import 'package:ext_rw/src/api_client/message/message.dart';
 import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
@@ -34,6 +35,9 @@ class ApiRequest {
   final Duration _timeout;
   final Duration _connectTimeout;
   final bool _debug;
+  final Map<int, StreamController<Result<ApiReply, Failure>>> _queries = {};
+  Option<Message> _message = None();
+  int _id = 0;
   ///
   /// Request to the API server
   /// - authToken
@@ -55,6 +59,56 @@ class ApiRequest {
     _timeout = timeout,
     _connectTimeout = connectTimeout,
     _debug = debug;
+  ///
+  /// Conecting the socket, setup the message listener
+  Future<Result<(), Failure>> _connect() async {
+    if (_message.isNone()) {
+      await Socket
+        .connect(_address.host, _address.port, timeout: _connectTimeout)
+        .then(
+          (socket) async {
+            socket.setOption(SocketOption.tcpNoDelay, true);
+            _message = Some(Message(socket));
+          },
+          onError: (err) {
+            return Err(Failure(message: 'ApiRequest._fetchSocket | Connection error: $err', stackTrace: StackTrace.current));
+          },
+        );
+    }
+    if (_message case Some(value: final message)) {
+      message.stream.listen(
+        (event) {
+          final (FieldId id, FieldKind kind, Bytes bytes) = event;
+          _log.debug('.listen.onData | Event | id: $id,  kind: $kind,  bytes: $bytes');
+          if (_queries.containsKey(id.id)) {
+            final query = _queries[id.id];
+            if (query != null) {
+              query.add(
+                Ok(ApiReply.fromJson(
+                  utf8.decode(bytes),
+                )),
+              );
+              query.close();
+              _queries.remove(id.id);
+            }
+          } else {
+            _log.error('.listen.onData | id \'${id.id}\' - not found');
+          }
+        },
+        onError: (err) {
+          _log.error('.listen.onError | Error: $err');
+          message.close();
+          _message = None();
+        },
+        onDone: () {
+          _log.debug('.listen.onDone | Done');
+          message.close();
+          _message = None();
+        },
+      );
+    }
+    return Ok(());
+  }
   ///
   String get authToken => _authToken;
   ///
@@ -83,37 +137,25 @@ class ApiRequest {
   }
   ///
   /// Fetching on tcp socket
-  Future<Result<ApiReply, Failure>> _fetchSocket(Bytes bytes) {
-    return Socket.connect(_address.host, _address.port, timeout: _connectTimeout)
-      .then((socket) async {
-        socket.setOption(SocketOption.tcpNoDelay, true);
-        return _send(socket, bytes)
-          .then((result) {
-            return switch(result) {
-              Ok() => _read(socket).then((result) {
-                return switch (result) {
-                  Ok(:final value) => Ok<ApiReply, Failure>(
-                    ApiReply.fromJson(
-                      utf8.decode(value),
-                    ),
-                  ),
-                  Err(:final error) => Err<ApiReply, Failure>(error),
-                };
-              }),
-              Err(:final error) => Future<Result<ApiReply, Failure>>.value(
-                  Err<ApiReply, Failure>(error),
-              ),
-            };
-          });
-      })
-      .catchError((error) {
-          return Err<ApiReply, Failure>(
-            Failure.connection(
-              message: '.fetch | socket error: $error', 
-              stackTrace: StackTrace.current,
-            ),
-          );
-      });
+  Future<Result<ApiReply, Failure>> _fetchSocket(Bytes bytes) async {
+    switch (await _connect()) {
+      case Ok<(), Failure>():
+        _id++;
+        if (!_queries.containsKey(_id)) {
+          _log.debug('._fetchSocket | id: \'$_id\',  sql: $bytes');
+          final StreamController<Result<ApiReply, Failure>> controller = StreamController();
+          _queries[_id] = controller;
+          if (_message case Some(value: final message)) {
+            message.add(_id, bytes);
+            return controller.stream.first;
+          } else {
+            return Err(Failure(message: '._fetchSocket | Not ready _message', stackTrace: StackTrace.current));
+          }
+        }
+        return Err(Failure(message: '._fetchSocket | Duplicated _id \'$_id\'', stackTrace: StackTrace.current));
+      case Err<(), Failure>(: final error):
+        return Err(Failure(message: '._fetchSocket | Connection error $error', stackTrace: StackTrace.current));
+    }
   }
   ///
   /// Fetching on web socket
