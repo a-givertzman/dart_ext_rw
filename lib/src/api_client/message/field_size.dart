@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:hmi_core/hmi_core_failure.dart';
-import 'package:hmi_core/hmi_core_log.dart';
+// import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 /// Used as `size` in bytes of the `data` stored in the `Message`
 class FieldSize {
-  final Log _log = Log('FieldSize');
+  // final Log _log = Log('FieldSize');
   final int _size;
   final int _len;
   final Endian _endian;
@@ -41,7 +41,7 @@ class FieldSize {
   /// Returns `Size` built from bytes
   Result<int, Failure> fromBytes(List<int> bytes) {
     if (bytes.length >= _len) {
-      _log.debug('.from | bytes: $bytes');
+      // _log.debug('.from | bytes: $bytes');
       final lst = Uint8List(_len)..setAll(0, bytes);
       final size = lst.buffer.asByteData().getInt32(0, _endian);
       return Ok(size);

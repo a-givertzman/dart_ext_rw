@@ -116,19 +116,22 @@ void main() {
               );
               socket.listen(
                 (event) {
-                  log.debug('.ServerSocket.listen.onData | event (${event.length}): $event');
+                  // log.debug('.ServerSocket.listen.onData | event (${event.length}): $event');
                   Uint8List? input = event;
                   bool isSome = true;
                   while (isSome) {
-                    log.debug('.ServerSocket.listen.onData | input (${input?.length}): $input');
+                    // log.debug('.ServerSocket.listen.onData | input (${input?.length}): $input');
                     switch (message.parse(input)) {
                       case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
                         log.debug('.ServerSocket.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
-                        Future.microtask(() {
-                          sleep(Duration(milliseconds: 500));
+                        Future.delayed(Duration(milliseconds: 500), () {
                           final reply = messageBuild.build(bytes, id: id.id);
                           socket.add(reply);
                         });
+                        // Future.microtask(() async {
+                        //   sleep(Duration(milliseconds: 500));
+                        // });
+                        log.debug('.ServerSocket.listen.onData | Microtask started');
                         input = null;
                       case None():
                         log.debug('.ServerSocket.listen.onData | Parsed | None');

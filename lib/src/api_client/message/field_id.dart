@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:hmi_core/hmi_core_failure.dart';
-import 'package:hmi_core/hmi_core_log.dart';
+// import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 /// Used as unique identifier of the `Message`
 class FieldId {
-  final Log _log = Log('FieldId');
+  // final Log _log = Log('FieldId');
   final int _len;
   final int _id;
   final Endian _endian;
@@ -41,7 +41,7 @@ class FieldId {
   /// Returns `Id` built from bytes
   Result<int, Failure> fromBytes(List<int> bytes) {
     if (bytes.length >= _len) {
-      _log.debug('.from | bytes: $bytes');
+      // _log.debug('.from | bytes: $bytes');
       final lst = Uint8List(_len)..setAll(0, bytes);
       final id = lst.buffer.asByteData().getInt32(0, _endian);
       return Ok(id);
