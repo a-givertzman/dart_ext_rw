@@ -8,7 +8,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// Extracting `kind` part from the input bytes
 class ParseKind implements MessageParse<Bytes, Option<(FieldId, FieldKind, Bytes)>> {
   final MessageParse<Bytes, Option<(FieldId, Bytes)>> _field;
-  Option<_Value> _value = None();
+  Option<FieldKind> _value = None();
   ///
   /// # Returns ParseKind new instance
   /// - **in case of Receiving**
@@ -26,12 +26,12 @@ class ParseKind implements MessageParse<Bytes, Option<(FieldId, FieldKind, Bytes
     switch (_field.parse(input)) {
       case Some(value : (final FieldId id, final Bytes bytes)):
         switch (_value) {
-          case Some<_Value>(:final value):
-            return Some((id, value.kind, bytes));
+          case Some<FieldKind>(value :final kind):
+            return Some((id, kind, bytes));
           case None():
             return switch (FieldKind.from(bytes.firstOrNull)) {
               Ok<FieldKind, Failure>(value: final kind) => () {
-                _value = Some(_Value(id, kind));
+                _value = Some(kind);
                 return Some((id, kind, bytes.sublist(1)));
               }() as Option<(FieldId, FieldKind, Bytes)>,
               Err<FieldKind, Failure>() => () {
@@ -42,9 +42,6 @@ class ParseKind implements MessageParse<Bytes, Option<(FieldId, FieldKind, Bytes
       case None():
         return None();
     }
-    // } else {
-    //   return Some((value.id, value.kind, input));
-    // }
   }
   //
   //
@@ -53,11 +50,4 @@ class ParseKind implements MessageParse<Bytes, Option<(FieldId, FieldKind, Bytes
     _field.reset();
     _value = None();
   }
-}
-///
-/// Just holds received id & kind
-class _Value {
-  final FieldId id;
-  final FieldKind kind;
-  _Value(this.id, this.kind);
 }

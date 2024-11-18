@@ -1,12 +1,12 @@
 import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
-import 'package:hmi_core/hmi_core_log.dart';
+// import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 /// Extracting `Id` part from the input bytes
 class ParseId implements MessageParse<Bytes, Option<(FieldId, Bytes)>> {
-  final _log = const Log('ParseId');
+  // final _log = const Log('ParseId');
   final MessageParse<Bytes, Option<Bytes>> _field;
   final FieldId _confId;
   Bytes _buf = [];
@@ -40,7 +40,7 @@ class ParseId implements MessageParse<Bytes, Option<(FieldId, Bytes)>> {
               return switch (_confId.fromBytes(bytes.sublist(0, _confId.len))) {
                 Ok(value: final id) => () {
                   _value = Some(FieldId(id));
-                  _log.debug('.parse | bytes: $bytes');
+                  // _log.debug('.parse | bytes: $bytes');
                   return Some((FieldId(id), bytes.sublist(_confId.len)));
                 }() as Option<(FieldId, Bytes)>,
                 Err() => () {
