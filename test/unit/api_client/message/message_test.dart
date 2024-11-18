@@ -81,6 +81,88 @@ class Request {
   }
 }
 ///
+/// Fake socket server
+class Server {
+  final _log = Log('Server');
+  final String host;
+  final int port;
+  ///
+  /// Fake socket server
+  Server(this.host, this.port);
+  ///
+  /// Starting server on the specified [host]:[port] address
+  Future start() {
+    return ServerSocket.bind(host, port).then(
+      (server) {
+        _log.debug('.bind | SocketServer ready on: ${server.address}');
+        server.listen(
+          (socket) {
+            _log.debug('.listen | Connection on: ${socket.address}');
+            final message = ParseData(
+              field: ParseSize(
+                size: FieldSize.def(),
+                field: ParseKind(
+                  field: ParseId(
+                  id: FieldId.def(),
+                    field: ParseSyn.def(),
+                  ),
+                ),
+              ),
+            );
+            final messageBuild = MessageBuild(
+              syn: FieldSyn.def(),
+              id: FieldId.def(),
+              kind: FieldKind.string,
+              size: FieldSize.def(),
+              data: FieldData([]),
+            );
+            socket.listen(
+              (event) {
+                // _log.debug('.listen.onData | event (${event.length}): $event');
+                Uint8List? input = event;
+                bool isSome = true;
+                while (isSome) {
+                  // _log.debug('.listen.onData | input (${input?.length}): $input');
+                  switch (message.parse(input)) {
+                    case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
+                      _log.debug('.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
+                      Future.delayed(Duration(milliseconds: 500), () {
+                        final reply = messageBuild.build(bytes, id: id.id);
+                        socket.add(reply);
+                      });
+                      _log.debug('.listen.onData | Microtask started');
+                      input = null;
+                    case None():
+                      _log.debug('.listen.onData | Parsed | None');
+                      isSome = false;
+                  }
+                }
+              },
+              onError: (err) {
+                _log.error('.listen.onError | Error: $err');
+              },
+              onDone: () {
+                _log.debug('.listen.onDone | Done');
+              },
+            );
+          },
+          onError: (err) {
+            _log.error('.listen.onError | Error: $err');
+            server.close();
+          },
+          onDone: () {
+            _log.debug('.listen.onDone | Done');
+            server.close();
+          },
+        );
+      },
+      onError: (err) {
+        _log.error('.bind.onError | Error: $err');
+      },
+    );
+  }
+}
+///
 /// Testing [ParseData].parse
 void main() {
   Log.initialize(level: LogLevel.all);
@@ -90,77 +172,7 @@ void main() {
     ///
     test('.socket()', () async {
       final (host, port) = ('127.0.0.1', 5061);
-      ServerSocket.bind(host, port).then(
-        (server) {
-          log.debug('.Server.bind | SocketServer ready on: ${server.address}');
-          server.listen(
-            (socket) {
-              log.debug('.Server.listen | Connection on: ${socket.address}');
-              final message = ParseData(
-                field: ParseSize(
-                  size: FieldSize.def(),
-                  field: ParseKind(
-                    field: ParseId(
-                    id: FieldId.def(),
-                      field: ParseSyn.def(),
-                    ),
-                  ),
-                ),
-              );
-              final messageBuild = MessageBuild(
-                syn: FieldSyn.def(),
-                id: FieldId.def(),
-                kind: FieldKind.string,
-                size: FieldSize.def(),
-                data: FieldData([]),
-              );
-              socket.listen(
-                (event) {
-                  // log.debug('.ServerSocket.listen.onData | event (${event.length}): $event');
-                  Uint8List? input = event;
-                  bool isSome = true;
-                  while (isSome) {
-                    // log.debug('.ServerSocket.listen.onData | input (${input?.length}): $input');
-                    switch (message.parse(input)) {
-                      case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
-                        log.debug('.ServerSocket.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
-                        Future.delayed(Duration(milliseconds: 500), () {
-                          final reply = messageBuild.build(bytes, id: id.id);
-                          socket.add(reply);
-                        });
-                        // Future.microtask(() async {
-                        //   sleep(Duration(milliseconds: 500));
-                        // });
-                        log.debug('.ServerSocket.listen.onData | Microtask started');
-                        input = null;
-                      case None():
-                        log.debug('.ServerSocket.listen.onData | Parsed | None');
-                        isSome = false;
-                    }
-                  }
-                },
-                onError: (err) {
-                  log.error('.ServerSocket.listen.onError | Error: $err');
-                },
-                onDone: () {
-                  log.debug('.ServerSocket.listen.onDone | Done');
-                },
-              );
-            },
-            onError: (err) {
-              log.error('.Server.listen.onError | Error: $err');
-              server.close();
-            },
-            onDone: () {
-              log.debug('.Server.listen.onDone | Done');
-              server.close();
-            },
-          );
-        },
-        onError: (err) {
-          log.error('.Server.bind.onError | Error: $err');
-        },
-      );
+      Server(host, port).start();
       log.debug('.Client.connect | Start connect...');
       Future<Socket> connect() async {
         Socket? socket;
@@ -192,7 +204,7 @@ void main() {
       );
       List<Future> replies = [];
       final time = Stopwatch()..start();
-      for (final i in Iterable.generate(10)) {
+      for (final i in Iterable.generate(100)) {
         final reply = request.fetch('$query$i').then(
           (reply) {
             log.info('.request.fetch | reply: $reply');
