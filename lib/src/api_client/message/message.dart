@@ -50,7 +50,7 @@ class Message {
     );
     _subscription = _socket.listen(
       (Uint8List event) {
-        _log.debug('.listen.onData | Event: $event');
+        // _log.debug('.listen.onData | Event: $event');
         Uint8List? input = event;
         bool isSome = true;
         while (isSome) {

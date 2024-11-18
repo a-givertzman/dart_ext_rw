@@ -2,13 +2,13 @@ import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
-import 'package:hmi_core/hmi_core_log.dart';
+// import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 /// Extracting `size` part from the input bytes
 class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, FieldSize, Bytes)>> {
-  final _log = const Log('ParseSize');
+  // final _log = const Log('ParseSize');
   final MessageParse<dynamic, Option<(FieldId, FieldKind, Bytes)>> _field;
   final FieldSize _confSize;
   Bytes _buf = [];
@@ -42,7 +42,7 @@ class ParseSize implements MessageParse<Bytes, Option<(FieldId, FieldKind, Field
               return switch (_confSize.fromBytes(bytes.sublist(0, _confSize.len))) {
                 Ok(value:final size) => () {
                   _value = Some(FieldSize(size));
-                  _log.debug('.parse | bytes: $bytes');
+                  // _log.debug('.parse | bytes: $bytes');
                   return Some((id, kind, FieldSize(size), bytes.sublist(_confSize.len)));
                 }() as Option<(FieldId, FieldKind, FieldSize, Bytes)>,
                 Err() => () {

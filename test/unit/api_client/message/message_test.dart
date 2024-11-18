@@ -124,9 +124,11 @@ void main() {
                     switch (message.parse(input)) {
                       case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
                         log.debug('.ServerSocket.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
-                        sleep(Duration(milliseconds: 500));
-                        final reply = messageBuild.build(bytes, id: id.id);
-                        socket.add(reply);
+                        Future.microtask(() {
+                          sleep(Duration(milliseconds: 500));
+                          final reply = messageBuild.build(bytes, id: id.id);
+                          socket.add(reply);
+                        });
                         input = null;
                       case None():
                         log.debug('.ServerSocket.listen.onData | Parsed | None');
@@ -156,7 +158,6 @@ void main() {
           log.error('.Server.bind.onError | Error: $err');
         },
       );
-      sleep(Duration(milliseconds: 100));
       log.debug('.Client.connect | Start connect...');
       Future<Socket> connect() async {
         Socket? socket;
@@ -187,6 +188,7 @@ void main() {
         Message(socket),
       );
       List<Future> replies = [];
+      final time = Stopwatch()..start();
       for (final i in Iterable.generate(10)) {
         final reply = request.fetch('$query$i').then(
           (reply) {
@@ -202,6 +204,7 @@ void main() {
       }
       await Future.wait(replies);
       log.info('.request | All (${replies.length}) replies finished');
+      log.info('.request | Elapsed: ${time.elapsed}');
       request.close();
     });
     ///
