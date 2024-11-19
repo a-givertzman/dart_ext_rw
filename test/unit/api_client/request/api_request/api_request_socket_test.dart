@@ -68,14 +68,25 @@ void main() {
             ),
           );
           final (id, kind, size, data) = messageRcv.parse(bytes).unwrap();
-          final messageSend = MessageBuild(
-            syn: FieldSyn.def(),
-            id: FieldId.def(),
-            kind: FieldKind.string,
-            size: FieldSize.def(),
-            data: FieldData([]),
-          );
-          socket.add(messageSend.build(data, id: id.id));
+          log.debug('ServerSocket.listen | id: $id,  kind: $kind,  size: $size,  data: ${data.take(16).toList()}...');
+          final query = String.fromCharCodes(data);
+          log.debug('ServerSocket.listen | query: $query');
+          if (query == 'timeout') {
+            log.debug('ServerSocket.listen | Timeout requested');
+            sleep(Duration(seconds: 5));
+          } else if (query == 'error') {
+            log.debug('ServerSocket.listen | error requested');
+            socket.add([0, 1]);
+          } else {
+            final messageSend = MessageBuild(
+              syn: FieldSyn.def(),
+              id: FieldId.def(),
+              kind: FieldKind.string,
+              size: FieldSize.def(),
+              data: FieldData([]),
+            );
+            socket.add(messageSend.build(data, id: id.id));
+          }
         });
       });
       address = ApiAddress(
@@ -119,9 +130,10 @@ void main() {
     ///
     test('.fetch() with invalid query', () async {
       final queryList = [
-        '',
+        (01, 'timeout', isA<Err>()),
+        (02, 'error', isA<Err>()),
       ];
-      for (final query in queryList) {
+      for (final (step, query, target) in queryList) {
         final apiRequest = ApiRequest(
           address: address,
           authToken: '+++',
@@ -131,10 +143,11 @@ void main() {
           ),
         );
         final result = await apiRequest.fetch();
+        log.debug('.fetch() with invalid query | result: $result');
         expect(
           result,
-          isA<Err>(),
-          reason: 'Api request with invalid query should return Err as Result',
+          target,
+          reason: '.fetch() with invalid query | step: $step, \n result: $result \n target: $target',
         );
       }
     });

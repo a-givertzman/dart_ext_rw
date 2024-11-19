@@ -146,7 +146,9 @@ class ApiRequest {
           _queries[_id] = completer;
           if (_message case Some(value: final message)) {
             message.add(_id, bytes);
-            return completer.future;
+            return completer.future.timeout(_timeout, onTimeout: () {
+              return Err(Failure(message: '._fetchSocket | Timeout ($_timeout) expired', stackTrace: StackTrace.current));
+            });
           } else {
             return Err(Failure(message: '._fetchSocket | Not ready _message', stackTrace: StackTrace.current));
           }

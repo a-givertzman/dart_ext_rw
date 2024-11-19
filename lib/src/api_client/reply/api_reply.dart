@@ -26,15 +26,23 @@ class ApiReply {
   ///
   ApiReply.fromJson(String jsonString) {
     // _log.fine('.fromJson | jsonString: $jsonString');
-    final jsonMap = json.decode(jsonString);
-    _log.fine('.fromJson | jsonMap: $jsonMap');
-    _authToken = jsonMap['authToken'];
-    _id = jsonMap['id'];
-    _query = jsonMap['query'] ?? {};
-    _data = (jsonMap['data'] as List<dynamic>).map((e) {
-      return (e as Map<dynamic, dynamic>).map((key, value) => MapEntry(key.toString(), value));
-    }).toList();
-    _error = ApiError(errors: jsonMap['error']);
+    try {
+      final jsonMap = json.decode(jsonString, );
+      _log.fine('.fromJson | jsonMap: $jsonMap');
+      _authToken = jsonMap['authToken'] ?? '';
+      _id = jsonMap['id'] ?? '';
+      _query = jsonMap['query'] ?? '';
+      _data = (jsonMap['data'] as List<dynamic>).map((e) {
+        return (e as Map<dynamic, dynamic>).map((key, value) => MapEntry(key.toString(), value));
+      }).toList();
+      _error = ApiError(errors: jsonMap['error']);
+    } catch (err) {
+      _authToken = '';
+      _id = '';
+      _query = '';
+      _data = [];
+      _error = ApiError(errors: {'0': 'ApiReply.fromJson | json.decode error: $err'});
+    }
   }
   ///
   String get authToken => _authToken;
