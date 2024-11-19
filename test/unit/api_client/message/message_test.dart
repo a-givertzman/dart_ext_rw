@@ -28,7 +28,7 @@ const keepGo = false;
 ///
 class Request {
   final _log = Log('Request');
-  final Map<int, StreamController<Bytes>> _queries = {};
+  final Map<int, Completer<Bytes>> _queries = {};
   final Message _message;
   int id = 0;
   ///
@@ -42,8 +42,7 @@ class Request {
         if (_queries.containsKey(id.id)) {
           final query = _queries[id.id];
           if (query != null) {
-            query.add(bytes);
-            query.close();
+            query.complete(bytes);
             _queries.remove(id.id);
           }
         } else {
@@ -66,11 +65,11 @@ class Request {
     id++;
     if (!_queries.containsKey(id)) {
       _log.debug('.fetch | id: \'$id\',  sql: $sql');
-      final StreamController<Bytes> controller = StreamController();
-      _queries[id] = controller;
+      final Completer<Bytes> completer = Completer();
+      _queries[id] = completer;
       final bytes = utf8.encode(sql);
       _message.add(id, bytes);
-      return controller.stream.first;
+      return completer.future;
     }
     throw Exception('.fetch | Duplicated id \'$id\'');
   }

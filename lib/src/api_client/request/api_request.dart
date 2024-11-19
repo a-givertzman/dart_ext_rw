@@ -35,7 +35,7 @@ class ApiRequest {
   final Duration _timeout;
   final Duration _connectTimeout;
   final bool _debug;
-  final Map<int, StreamController<Result<ApiReply, Failure>>> _queries = {};
+  final Map<int, Completer<Result<ApiReply, Failure>>> _queries = {};
   Option<Message> _message = None();
   int _id = 0;
   ///
@@ -83,12 +83,11 @@ class ApiRequest {
           if (_queries.containsKey(id.id)) {
             final query = _queries[id.id];
             if (query != null) {
-              query.add(
+              query.complete(
                 Ok(ApiReply.fromJson(
                   utf8.decode(bytes),
                 )),
               );
-              query.close();
               _queries.remove(id.id);
             }
           } else {
@@ -143,11 +142,11 @@ class ApiRequest {
         _id++;
         if (!_queries.containsKey(_id)) {
           _log.debug('._fetchSocket | id: \'$_id\',  sql: $bytes');
-          final StreamController<Result<ApiReply, Failure>> controller = StreamController();
-          _queries[_id] = controller;
+          final Completer<Result<ApiReply, Failure>> completer = Completer();
+          _queries[_id] = completer;
           if (_message case Some(value: final message)) {
             message.add(_id, bytes);
-            return controller.stream.first;
+            return completer.future;
           } else {
             return Err(Failure(message: '._fetchSocket | Not ready _message', stackTrace: StackTrace.current));
           }
