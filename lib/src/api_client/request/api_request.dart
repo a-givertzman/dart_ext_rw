@@ -4,16 +4,11 @@ import 'dart:io';
 
 import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/message.dart';
-import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/field_syn.dart';
-import 'package:ext_rw/src/api_client/message/parse_id.dart';
-import 'package:ext_rw/src/api_client/message/parse_kind.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
-import 'package:ext_rw/src/api_client/message/parse_size.dart';
-import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:ext_rw/src/api_client/address/api_address.dart';
 import 'package:ext_rw/src/api_client/reply/api_reply.dart';
@@ -27,6 +22,8 @@ import 'package:hmi_core/hmi_core_result.dart';
 // import 'package:web_socket_channel/io.dart';
 ///
 /// Performs the request to the API server
+/// - Can be fetched multiple times
+/// - Keeps socket connection opened
 class ApiRequest {
   static final _log = const Log('ApiRequest')..level = LogLevel.info;
   final ApiAddress _address;
@@ -109,6 +106,7 @@ class ApiRequest {
     return Ok(());
   }
   ///
+  /// Returns specified authToken
   String get authToken => _authToken;
   ///
   /// Sends created request to the remote
@@ -194,6 +192,7 @@ class ApiRequest {
       });
   }
   ///
+  /// Reads bytes from web socket
   Future<Result<List<int>, Failure>> _readWeb(WebSocket socket) async {
     try {
       List<int> message = [];
@@ -223,21 +222,6 @@ class ApiRequest {
     }
   }
   ///
-  /// Returns MessageParse new instance
-  ParseData resetParseMessage() {
-    return ParseData(
-      field: ParseSize(
-        size: FieldSize.def(),
-        field: ParseKind(
-          field: ParseId(
-            id: FieldId.def(),
-            field: ParseSyn.def(),
-          ),
-        ),
-      ),
-    );
-  }
-  ///
   /// Sends bytes over WEB socket
   Future<Result<bool, Failure>> _sendWeb(WebSocket socket, Bytes bytes) async {
     final message = MessageBuild(
@@ -261,7 +245,7 @@ class ApiRequest {
     }
   }
   ///
-  /// Closes the socket
+  /// Closes web socket
   Future<void> _closeSocketWeb(WebSocket? socket) async {
     try {
       socket?.close();
