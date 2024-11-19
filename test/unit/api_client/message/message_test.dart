@@ -25,15 +25,15 @@ const int syn = 22;
 const restart = true;
 const keepGo = false;
 ///
-///
-class Request {
+/// FakeRequest
+class FakeRequest {
   final _log = Log('Request');
   final Map<int, Completer<Bytes>> _queries = {};
   final Message _message;
   int id = 0;
   ///
-  ///
-  Request(Message message):
+  /// FakeRequest
+  FakeRequest(Message message):
     _message = message {
     _message.stream.listen(
       (event) {
@@ -198,7 +198,7 @@ void main() {
       final socket = await connect();
       log.debug('.Client.connect | Socket connected on: ${socket.address}');
       final query = 'Client.Request';
-      final request = Request(
+      final request = FakeRequest(
         Message(socket),
       );
       List<Future> replies = [];
