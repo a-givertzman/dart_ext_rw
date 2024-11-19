@@ -17,30 +17,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 import 'package:hmi_core/hmi_core_option.dart';
-///
-/// For testing only
-class FakeApiQueryType implements ApiQueryType {
-  final bool _valid;
-  final String _query;
-  ///
-  /// For testing only
-  FakeApiQueryType({
-    required bool valid,
-    required String query,
-  })  : _valid = valid,
-        _query = query;
-  //
-  @override
-  bool valid() => _valid;
-  //
-  @override
-  String buildJson({String authToken = '', bool debug = false}) => _query;
-  ///
-  /// insert directly into _query in fake implementation
-  @override
-  String get id => '';
-}
 
+import 'fake_query_type.dart';
+///
+/// Testing ApiRequest
 void main() {
   Log.initialize(level: LogLevel.all);
   final log = Log('Test:MessageBuild');

@@ -108,8 +108,13 @@ class Message {
   }
   ///
   /// Close the [stream] and `socket`
-  Future close() async {
-    await _subscription?.cancel();
-    return _socket.close();
+  Future<void> close() async {
+    try {
+      await _subscription?.cancel();
+      await _socket.close();
+    } catch (error) {
+      _log.warning('[.close] error: $error');
+    }
+
   }
 }
