@@ -4,13 +4,13 @@ import 'package:ext_rw/src/table_schema/schema_entry_abstract.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:uuid/uuid.dart';
-
 ///
-/// abstruction on the SQL table single row
+/// Abstruction on the SQL table single row
 class SchemaEntry implements SchemaEntryAbstract {
   final _log = Log("$SchemaEntry");
   final _id = const Uuid().v1();  // v1 time-based id
   final Map<String, FieldValue> _map;
+  final bool _isEmpty;
   bool _isChanged =  false;
   bool _isSelected = false;
   ///
@@ -18,13 +18,16 @@ class SchemaEntry implements SchemaEntryAbstract {
   SchemaEntry({
     Map<String, FieldValue>? map,
   }):
-    _map = map ?? const {};
+    _map = map ?? const {},
+    _isEmpty = map != null && map.isNotEmpty ? false : true;
   ///
   /// Creates entry from database row
   // SchemaEntry.from(Map<String, dynamic> row);
   ///
   /// Creates entry with empty / default values
-  SchemaEntry.empty(): _map = {};
+  SchemaEntry.empty(): 
+    _map = {},
+    _isEmpty = true;
   ///
   /// Returns inner unique identificator of the entry, not related to the database table
   @override
@@ -49,6 +52,10 @@ class SchemaEntry implements SchemaEntryAbstract {
   /// Returns selection state
   @override
   bool get isSelected => _isSelected;
+  //
+  //
+  @override
+  bool get isEmpty => _isEmpty;
   ///
   /// Returns field value by field name [key]
   @override

@@ -14,6 +14,9 @@ abstract interface class SchemaEntryAbstract {
   /// Returns selection state
   bool get isSelected;
   ///
+  /// Returns true if created as Empty / not initialized yet
+  bool get isEmpty;
+  ///
   /// Returns field value by field name [key]
   FieldValue value(String key);
   ///
