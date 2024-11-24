@@ -227,7 +227,7 @@ class ApiRequest {
     final message = MessageBuild(
       syn: FieldSyn.def(),
       id: FieldId.def(),
-      kind: FieldKind.string,
+      kind: FieldKind.bytes,
       size: FieldSize.def(),
       data: FieldData([]),
     );

@@ -48,7 +48,7 @@ class Message {
   final MessageBuild _messageBuild = MessageBuild(
     syn: FieldSyn.def(),
     id: FieldId.def(),
-    kind: FieldKind.string,
+    kind: FieldKind.bytes,
     size: FieldSize.def(),
     data: FieldData([]),
   );
