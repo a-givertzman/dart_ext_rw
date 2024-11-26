@@ -41,7 +41,7 @@ import 'package:hmi_core/hmi_core_option.dart';
 ///   },
 /// );
 class Message {
-  final _log = Log('Message');
+  final _log = Log('Message')..level = LogLevel.debug;
   final StreamController<(FieldId, FieldKind, Bytes)> _controller = StreamController();
   final Socket _socket;
   late StreamSubscription? _subscription;
@@ -78,7 +78,7 @@ class Message {
         while (isSome) {
           switch (message.parse(input)) {
             case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
-              _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
+              _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
               _controller.add((id, kind, bytes));
               input = null;
             case None():
@@ -87,22 +87,30 @@ class Message {
           }
         }
       },
-      onError: (err) {
+      onError: (err) async {
         _log.error('.listen.onError | Error: $err');
-        _subscription?.cancel();
-        _socket.close();
+        await Future.wait([
+          _subscription?.cancel() ?? Future.value(),
+          _socket.close(),
+          _controller.close(),
+        ]);
+        return err;
       },
-      onDone: () {
+      onDone: () async {
         _log.warning('.listen.onDone | Done');
-        _subscription?.cancel();
-        _socket.close();
+        await Future.wait([
+          _subscription?.cancel() ?? Future.value(),
+          _socket.close(),
+          _controller.close(),
+        ]);
       },
     );
     return _controller.stream;
   }
   ///
   /// Sends bytes as built [Message] to the specified `socket`
-  void add(id, Bytes bytes) {
+  void add(int id, Bytes bytes) {
+    _log.debug('.add | id: $id,  bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
     final message = _messageBuild.build(bytes, id: id);
     _socket.add(message);
   }
@@ -110,8 +118,11 @@ class Message {
   /// Close the [stream] and `socket`
   Future<void> close() async {
     try {
-      await _subscription?.cancel();
-      await _socket.close();
+      await Future.wait([
+        _subscription?.cancel() ?? Future.value(),
+        _socket.close(),
+        _controller.close(),
+      ]);
     } catch (error) {
       _log.warning('[.close] error: $error');
     }

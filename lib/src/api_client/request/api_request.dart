@@ -16,7 +16,6 @@ import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 // import 'package:web_socket_channel/web_socket_channel.dart';
 // import 'package:web_socket_channel/io.dart';
@@ -25,7 +24,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// - Can be fetched multiple times
 /// - Keeps socket connection opened
 class ApiRequest {
-  static final _log = const Log('ApiRequest')..level = LogLevel.info;
+  static final _log = const Log('ApiRequest')..level = LogLevel.debug;
   final ApiAddress _address;
   final String _authToken;
   final ApiQueryType _query;
@@ -33,7 +32,10 @@ class ApiRequest {
   final Duration _connectTimeout;
   final bool _debug;
   final Map<int, Completer<Result<ApiReply, Failure>>> _queries = {};
-  Option<Message> _message = None();
+  final Map<int, Message> _messages = {};
+  // Message? _message;
+  // StreamSubscription<(FieldId, FieldKind, List<int>)>? _messageSubscription;
+  bool _isConnecting = false;
   int _id = 0;
   ///
   /// Request to the API server
@@ -58,52 +60,79 @@ class ApiRequest {
     _debug = debug;
   ///
   /// Conecting the socket, setup the message listener
-  Future<Result<(), Failure>> _connect() async {
-    if (_message.isNone()) {
-      await Socket
-        .connect(_address.host, _address.port, timeout: _connectTimeout)
-        .then(
-          (socket) async {
-            socket.setOption(SocketOption.tcpNoDelay, true);
-            _message = Some(Message(socket));
-          },
-          onError: (err) {
-            return Err(Failure(message: 'ApiRequest._fetchSocket | Connection error: $err', stackTrace: StackTrace.current));
-          },
-        );
-    }
-    if (_message case Some(value: final message)) {
-      message.stream.listen(
-        (event) {
-          final (FieldId id, FieldKind kind, Bytes bytes) = event;
-          _log.debug('.listen.onData | Event | id: $id,  kind: $kind,  bytes: $bytes');
-          if (_queries.containsKey(id.id)) {
-            final query = _queries[id.id];
-            if (query != null) {
-              query.complete(
-                Ok(ApiReply.fromJson(
-                  utf8.decode(bytes),
-                )),
-              );
-              _queries.remove(id.id);
-            }
-          } else {
-            _log.error('.listen.onData | id \'${id.id}\' - not found');
-          }
+  Future<Result<Message, Failure>> _connect(int id) async {
+    _log.warning('._connect | id $id  to ${_address.host}:${_address.port}');
+    _isConnecting = true;
+    return await Socket
+      .connect(_address.host, _address.port, timeout: _connectTimeout)
+      .then(
+        (socket) async {
+          _log.warning('._connect | connected');
+          socket.setOption(SocketOption.tcpNoDelay, true);
+          final message = Message(socket);
+          _messages.putIfAbsent(0, () => message);
+          _messages.putIfAbsent(id, () => message);
+          _isConnecting = false;
+          _log.warning('._connect | _messages $_messages');
+          message.stream.listen(
+              (event) {
+                final (FieldId id, FieldKind kind, Bytes bytes) = event;
+                // _log.warning('.listen.onData | Event | id: $id,  kind: $kind');
+                _log.debug('.listen.onData | id: $id,  kind: $kind,  bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
+                final query = _queries[id.id];
+                if (query != null) {
+                  query.complete(
+                    Ok(ApiReply.fromJson(
+                      utf8.decode(bytes),
+                    )),
+                  );
+                  _queries.remove(id.id);
+                  _messages.remove(id.id);
+                } else {
+                  _log.error('._connect.listen.onData | id \'${id.id}\' - not found');
+                }
+              },
+              onError: (err) {
+                _log.error('._connect.listen.onError | Error: $err');
+                // message.close();
+                // _message = None();
+                return err;
+              },
+              onDone: () async {
+                _log.warning('._connect.listen.onDone | Done');
+                _messages.removeWhere((_, m) => m == message);
+                _log.warning('._connect.listen.onDone | _messages $_messages');
+                // _messageSubscription?.cancel();
+                // _messageSubscription = null;
+              },
+            );
+          return Ok(message);
         },
         onError: (err) {
-          _log.error('.listen.onError | Error: $err');
-          message.close();
-          _message = None();
-        },
-        onDone: () {
-          _log.debug('.listen.onDone | Done');
-          message.close();
-          _message = None();
+          _isConnecting = false;
+          _log.warning('._connect | Error $err');
+          return Err(Failure(message: 'ApiRequest._fetchSocket | Connection error: $err', stackTrace: StackTrace.current));
         },
       );
-    }
-    return Ok(());
+  }
+  ///
+  /// Conecting the socket, setup the message listener
+  Future<Result<Message, Failure>> _message(int id) async {
+    _log.warning('._message | id $id');
+    if (_messages.keys.contains(id)) {
+      final message = _messages.entries.elementAtOrNull(id)?.value;
+      return Future.value(Ok(message!));
+    } else {
+      final message = _messages.entries.elementAtOrNull(0)?.value;
+      if (message != null) {
+        _log.warning('._message | Found stored message $id');
+        _messages.putIfAbsent(id, () => message!);
+        return Future.value(Ok(message));
+      } else {
+        _log.warning('._message | Connecting new message $id');
+        return _connect(id);
+      }
+    } 
   }
   ///
   /// Returns specified authToken
@@ -135,25 +164,35 @@ class ApiRequest {
   ///
   /// Fetching on tcp socket
   Future<Result<ApiReply, Failure>> _fetchSocket(Bytes bytes) async {
-    switch (await _connect()) {
-      case Ok<(), Failure>():
-        _id++;
+    if (_isConnecting) {
+      final time = Stopwatch()..start();
+      while (_isConnecting) {
+        _log.debug('._fetchSocket | Await while connecting');
+        sleep(Duration(milliseconds: 300));
+        if (time.elapsed > _timeout) {
+          return Err(Failure(message: 'ApiRequest._fetchSocket | Timeout ($_timeout) expired', stackTrace: StackTrace.current));
+        }
+      }
+    }
+    _id++;
+    switch (await _message(_id)) {
+      case Ok(value: final message):
         if (!_queries.containsKey(_id)) {
-          _log.debug('._fetchSocket | id: \'$_id\',  sql: $bytes');
+          _log.debug('._fetchSocket | Sending  id: \'$_id\',  sql: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
           final Completer<Result<ApiReply, Failure>> completer = Completer();
           _queries[_id] = completer;
-          if (_message case Some(value: final message)) {
-            message.add(_id, bytes);
-            return completer.future.timeout(_timeout, onTimeout: () {
-              return Err(Failure(message: '._fetchSocket | Timeout ($_timeout) expired', stackTrace: StackTrace.current));
-            });
-          } else {
-            return Err(Failure(message: '._fetchSocket | Not ready _message', stackTrace: StackTrace.current));
-          }
+          message.add(_id, bytes);
+          return completer.future.timeout(_timeout, onTimeout: () {
+            return Err<ApiReply, Failure>(Failure(message: 'ApiRequest._fetchSocket | Timeout ($_timeout) expired', stackTrace: StackTrace.current));
+          });
+          // if (message case Some(value: final message)) {
+          // } else {
+          //   return Err<ApiReply, Failure>(Failure(message: '._fetchSocket | Not ready _message', stackTrace: StackTrace.current));
+          // }
         }
-        return Err(Failure(message: '._fetchSocket | Duplicated _id \'$_id\'', stackTrace: StackTrace.current));
-      case Err<(), Failure>(: final error):
-        return Err(Failure(message: '._fetchSocket | Connection error $error', stackTrace: StackTrace.current));
+        return Err<ApiReply, Failure>(Failure(message: 'ApiRequest._fetchSocket | Duplicated _id \'$_id\'', stackTrace: StackTrace.current));
+      case Err(: final error):
+        return Err<ApiReply, Failure>(Failure(message: 'ApiRequest._fetchSocket | Connection error $error', stackTrace: StackTrace.current));
     }
   }
   ///

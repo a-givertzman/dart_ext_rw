@@ -36,9 +36,10 @@ class FakeServer {
   ///
   /// Starting server on the specified [host]:[port] address
   Future start() {
+    _log.debug('.start | Binding SocketServer on: $host:$port}');
     return ServerSocket.bind(host, port).then(
       (server) {
-        _log.debug('.bind | SocketServer ready on: ${server.address}');
+        _log.debug('.bind | SocketServer ready on: ${server.address.host}:${server.port}');
         server.listen(
           (socket) {
             _log.debug('.listen | Connection on: ${socket.address}');
@@ -115,33 +116,8 @@ void main() {
     ///
     ///
     test('.socket()', () async {
-      final (host, port) = ('127.0.0.1', 5061);
-      FakeServer(host, port).start();
-      log.debug('.Client.connect | Start connect...');
-      Future<Socket> connect() async {
-        Socket? socket;
-        int connectionErr = 0;
-        while (socket == null) {
-          socket = await Socket.connect(host, port)
-            .timeout(Duration(seconds: 3), onTimeout: () {
-                log.error('.Client.connect | Timeout error');          
-                throw Exception('.Client.connect | Timeout error');
-            })
-            .then(
-              (s) => s,
-                onError: (err) {
-                  if (connectionErr++ >= 3) {
-                    log.error('.Client.connect.onError | Error: $err');
-                    throw Exception('.Client.connect | Timeout error');
-                  }
-                  log.warning('.Client.connect.onError | Error: $err');
-              },
-            );
-        }
-        return socket;
-      }
-      final socket = await connect();
-      log.debug('.Client.connect | Socket connected on: ${socket.address}');
+      final (host, port) = ('0.0.0.0', 5061);
+      final srv = await FakeServer(host, port).start();
       List<Future> replies = [];
       final time = Stopwatch()..start();
       final request = ApiRequest(
@@ -159,7 +135,6 @@ void main() {
           },
           onError: (err) {
             log.error('.request.fetch.onError | Error: $err');
-            socket.close();
           },
         );
         replies.add(reply);

@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:uuid/uuid.dart';
-
+///
+/// Contains database name, SQL and query additional parameters
 class SqlQuery implements ApiQueryType {
-  late String _id;
+  late String _id = '';
   final String _database;
   final String _sql;
   final bool _keepAlive;
@@ -18,13 +19,15 @@ class SqlQuery implements ApiQueryType {
     _database = database,
     _sql = sql,
     _keepAlive = keepAlive;
-  ///
+  //
+  //
   @override
   bool valid() {
     return true;
     /// some simplest sql syntax validation to be implemented
   }
-  ///
+  //
+  //
   @override
   String buildJson({String authToken = '', bool debug = false}) {
     _id = const Uuid().v1();
@@ -40,9 +43,17 @@ class SqlQuery implements ApiQueryType {
     });
     return jsonString;
   }
-  ///
+  //
+  //
   @override
   String get id => _id;
   ///
+  /// Returns database name
   String get database => _database;
+  //
+  //
+  @override
+  String toString() {
+    return 'SqlQuery { \n\t id: $_id, \n\t database: $database, \n\t sql: $_sql \n\t keepAlive: $_keepAlive }';
+  }
 }
