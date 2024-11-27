@@ -56,7 +56,7 @@ class ApiReply {
   ApiError get error => _error;
   ///
   bool get hasError => _error.isNotEmpty;
-  ///
+  //
   @override
   String toString() {
     return '''$ApiReply {

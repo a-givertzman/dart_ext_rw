@@ -34,8 +34,8 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
   List<String> get keys {
     return _schema.keys;
   }
-  ///
-  ///
+  //
+  //
   @override
   List<T> get entries => _schema.entries;
   ///

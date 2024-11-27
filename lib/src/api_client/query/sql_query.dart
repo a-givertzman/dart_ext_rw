@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:uuid/uuid.dart';
 ///
-/// Contains database name, SQL and query additional parameters
+/// Query for 'python' API service
+/// - Contains database name, SQL and query additional parameters
 class SqlQuery implements ApiQueryType {
   late String _id = '';
   final String _database;
@@ -47,6 +48,10 @@ class SqlQuery implements ApiQueryType {
   //
   @override
   String get id => _id;
+  //
+  //
+  @override
+  bool get keepAlive => _keepAlive;
   ///
   /// Returns database name
   String get database => _database;

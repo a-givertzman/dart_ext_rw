@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:uuid/uuid.dart';
-
+///
+/// Query for `python` API service
 class PythonQuery implements ApiQueryType {
   late String _id;
   final String _script;
@@ -18,13 +19,15 @@ class PythonQuery implements ApiQueryType {
     _script = script,
     _params = params,
     _keepAlive = keepAlive;
-///
+  //
+  //
   @override
   bool valid() {
     return true;
     /// TODO some simplest validation to be implemented
   }
-  ///
+  //
+  //
   @override
   String buildJson({String authToken = '', bool debug = false}) {
     _id = const Uuid().v1();
@@ -40,9 +43,15 @@ class PythonQuery implements ApiQueryType {
     });
     return jsonString;
   }
-  ///
+  //
+  //
   @override
   String get id => _id;
+  //
+  //
+  @override
+  bool get keepAlive => _keepAlive;
   ///
+  /// Returns contained python script
   String get script => _script;
 }

@@ -38,8 +38,8 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   List<String> get keys {
     return _fields.map((field) => field.key).toList();
   }
-  ///
-  ///
+  //
+  //
   @override
   List<T> get entries => _entries.values.toList();
   ///

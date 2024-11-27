@@ -32,8 +32,8 @@ class SchemaEntry implements SchemaEntryAbstract {
   /// Returns inner unique identificator of the entry, not related to the database table
   @override
   String get key => _id;
-  ///
-  ///
+  //
+  //
   @override
   bool get isChanged => _isChanged;
   ///
