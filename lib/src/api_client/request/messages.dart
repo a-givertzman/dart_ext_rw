@@ -75,6 +75,7 @@ class Messages {
               connection.complete(
                 Err(Failure(message: 'Messages._check | Error: $error', stackTrace: StackTrace.current)),
               );
+              _connection = null;
           }
         },
         onError: (error) {
@@ -82,6 +83,7 @@ class Messages {
           connection.complete(
             Err(Failure(message: 'Messages._check | Error: $error', stackTrace: StackTrace.current)),
           );
+          _connection = null;
         },
       );
     }
