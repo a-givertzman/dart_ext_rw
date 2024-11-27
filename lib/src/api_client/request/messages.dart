@@ -48,11 +48,11 @@ class Messages {
             case Ok<ArcMessage, Failure>(value: final message):
               return message.fetch(id, bytes);
             case Err<ArcMessage, Failure>(: final error):
-              return Err(Failure(message: 'Messages.fetch | Error: $error', stackTrace: StackTrace.current));
+              return Err<ApiReply, Failure>(Failure(message: 'Messages.fetch | Error: $error', stackTrace: StackTrace.current));
           }
         },
         onError: (error) {
-            return Err(Failure(message: 'Messages.fetch | Error: $error', stackTrace: StackTrace.current));
+            return Err<ApiReply, Failure>(Failure(message: 'Messages.fetch | Error: $error', stackTrace: StackTrace.current));
         },
       );
   }
@@ -79,7 +79,7 @@ class Messages {
           }
         },
         onError: (error) {
-          _log.debug('._check | Error: $error');
+          _log.warning('._check | Error: $error');
           connection.complete(
             Err(Failure(message: 'Messages._check | Error: $error', stackTrace: StackTrace.current)),
           );
@@ -102,7 +102,7 @@ class Messages {
     return Socket
       .connect(_address.host, _address.port, timeout: _timeout)
       .then(
-        (socket) async {
+        (socket) {
           _log.debug('._connect | connected');
           socket.setOption(SocketOption.tcpNoDelay, true);
           final message = ArcMessage(Message(socket), keepAlive);
@@ -112,7 +112,7 @@ class Messages {
         },
         onError: (err) {
           _log.warning('._connect | Error $err');
-          return Err(Failure(message: 'ApiRequest._fetchSocket | Connection error: $err', stackTrace: StackTrace.current));
+          return Err<ArcMessage, Failure>(Failure(message: 'ApiRequest._fetchSocket | Connection error: $err', stackTrace: StackTrace.current));
         },
       );
   }
