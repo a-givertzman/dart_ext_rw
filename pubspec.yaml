@@ -1,6 +1,6 @@
 name: ext_rw
 description: API tools on client side for Dart / Flutter application
-version: 1.0.2
+version: 1.1.0
 homepage: https://github.com/a-givertzman/dart_ext_rw
 publish_to: none
 
