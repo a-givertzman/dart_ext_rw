@@ -11,9 +11,11 @@ import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 
 ///
-/// Provides multiple queries if `keep` is `true`
+/// Provide multiple requests via [Message] - a part of `ApiRequest`
+/// - Can be fetched multiple times
+/// - Keeps socket connection opened if `keep` = true
 class ArcMessage {
-  static final _log = const Log('ArcMessage')..level = LogLevel.debug;
+  static final _log = const Log('ArcMessage');
   final Map<int, Completer<Result<ApiReply, Failure>>> _queries = {};
   final Message _message;
   final Duration _timeout;
@@ -65,7 +67,9 @@ class ArcMessage {
       );
   }
   ///
-  ///
+  /// Sends `bytes` to the remote
+  /// - `id` - integer id unique withing connection
+  /// - Returns reply or error
   Future<Result<ApiReply, Failure>> fetch(int id, Bytes bytes) {
     if (!_queries.containsKey(id)) {
       _log.debug('.fetch | Sending  id: \'$id\',  sql: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');

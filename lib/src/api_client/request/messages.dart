@@ -12,11 +12,11 @@ import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 
 ///
-/// Provide multiple requests via [ArcMessage]
+/// Provide multiple requests via [ArcMessage] - a part of `ApiRequest`
 /// - Can be fetched multiple times
 /// - Keeps socket connection opened if `query` has keepAlive = true
 class Messages {
-  static final _log = const Log('Messages')..level = LogLevel.debug;
+  static final _log = const Log('Messages');
   final List<ArcMessage> _messages = [];
   final ApiAddress _address;
   final Duration _timeout;
@@ -34,6 +34,7 @@ class Messages {
     _timeout = timeout;
   ///
   /// Sends `bytes` to the remote
+  /// - `id` - integer id unique withing connection
   /// - `keepAlive` - keeping socket connection opened if `true`
   /// - Returns reply or error
   Future<Result<ApiReply, Failure>> fetch(int id, Bytes bytes, bool keepAlive) async {
