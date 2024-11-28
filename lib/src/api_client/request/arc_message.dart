@@ -39,7 +39,7 @@ class ArcMessage {
               )),
             );
             _queries.remove(id.id);
-            if (!keep) {
+            if (!keep && _queries.isEmpty) {
               await Future.wait([
                 _subscription?.cancel() ?? Future.value(),
                 _message.close(),
