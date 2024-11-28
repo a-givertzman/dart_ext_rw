@@ -24,7 +24,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// - Can be fetched multiple times
 /// - Keeps socket connection opened if `query` has keepAlive = true
 class ApiRequest {
-  static final _log = const Log('ApiRequest')..level = LogLevel.debug;
+  static final _log = const Log('ApiRequest');
   final ApiAddress _address;
   final String _authToken;
   final ApiQueryType _query;
@@ -34,10 +34,10 @@ class ApiRequest {
   int _id = 0;
   ///
   /// Request to the API server
-  /// - authToken
+  /// - authToken - authentication parameter, dipends on authentication kind
   /// - address - IP and port of the API server
   /// - query - paload data to be sent to the API server, containing specific kind of API query
-  /// - timeout - time to wait read, write & connection until timeout error
+  /// - timeout - time to wait read, write & connection until timeout error, default - 3 sec
   ApiRequest({
     required String authToken,
     required ApiAddress address,
@@ -56,7 +56,7 @@ class ApiRequest {
   String get authToken => _authToken;
   ///
   /// Sends created request to the remote
-  /// - returns reply if exists
+  /// - Returns reply or error
   Future<Result<ApiReply, Failure>> fetch() async {
     final queryJson = _query.buildJson(authToken: _authToken, debug: _debug);
     final bytes = utf8.encode(queryJson);
@@ -67,8 +67,8 @@ class ApiRequest {
     }
   }
   ///
-  /// Sends created request with new query to the remote
-  /// - returns reply if exists
+  /// Sends specified `query` to the remote
+  /// - Returns reply or error
   Future<Result<ApiReply, Failure>> fetchWith(ApiQueryType query) async {
     final queryJson = query.buildJson(authToken: _authToken, debug: _debug);
     final bytes = utf8.encode(queryJson);
