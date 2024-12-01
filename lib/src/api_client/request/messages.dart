@@ -72,10 +72,10 @@ class Messages {
     switch (_connection) {
       // default:
       case Some<Completer<Result<ArcMessage, Failure>>>(value: final connection):
-        _log.debug('._connect | New connection awaiting...');
+        // _log.debug('._connect | Connection awaiting...');
         return connection.future;
       case None():
-        _log.debug('._connect | New connection...');
+        // _log.debug('._connect | Connecting...');
         final connection = Completer<Result<ArcMessage, Failure>>();
         _connection = Some(connection);
         _socket(id, bytes, keepAlive).then(
@@ -83,6 +83,7 @@ class Messages {
             // _log.debug('._connect | New connection result: $result');
             switch (result) {
               case Ok<ArcMessage, Failure>(value: final message):
+                // _log.debug('._connect | connected');
                 connection.complete(Ok(message));
                 _connection = None();
               case Err<ArcMessage, Failure>(: final error):
@@ -110,7 +111,7 @@ class Messages {
       .connect(_address.host, _address.port, timeout: _timeout)
       .then(
         (socket) {
-          _log.debug('._socket | connected');
+          // _log.debug('._socket | connected');
           socket.setOption(SocketOption.tcpNoDelay, true);
           final message = ArcMessage(Message(socket), keepAlive);
           _messages.add(message);
