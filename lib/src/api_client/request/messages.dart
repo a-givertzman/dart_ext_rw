@@ -42,10 +42,10 @@ class Messages {
     while (index < _messages.length) {
       final message = _messages.elementAt(index);
       if (message.done) {
-        _log.debug('.fetch | Removing done message: $message');
+        // _log.debug('.fetch | Removing done message: $message');
         _messages.remove(message);
       } else if (message.keep) {
-        _log.debug('.fetch | Found message: $message');
+        // _log.debug('.fetch | Found message: $message');
         return message.fetch(id, bytes);
       } else {
         index++;

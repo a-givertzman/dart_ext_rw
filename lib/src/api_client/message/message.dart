@@ -77,8 +77,8 @@ class Message {
         bool isSome = true;
         while (isSome) {
           switch (message.parse(input)) {
-            case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
-              _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
+            case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final _, final bytes)):
+              // _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
               _controller.add((id, kind, bytes));
               input = null;
             case None():
@@ -97,7 +97,7 @@ class Message {
         return err;
       },
       onDone: () async {
-        _log.warning('.listen.onDone | Done');
+        // _log.debug('.listen.onDone | Done');
         await Future.wait([
           _subscription?.cancel() ?? Future.value(),
           _socket.close(),
@@ -110,7 +110,7 @@ class Message {
   ///
   /// Sends bytes as built [Message] to the specified `socket`
   void add(int id, Bytes bytes) {
-    _log.debug('.add | id: $id,  bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
+    // _log.debug('.add | id: $id,  bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
     final message = _messageBuild.build(bytes, id: id);
     _socket.add(message);
   }

@@ -32,7 +32,7 @@ class ArcMessage {
     _subscription = _message.stream.listen(
         (event) async {
           final (FieldId id, FieldKind kind, Bytes bytes) = event;
-          _log.debug('.listen.onData | id: $id,  kind: $kind,  bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
+          // _log.debug('.listen.onData | id: $id,  kind: $kind,  bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
           final query = _queries[id.id];
           if (query != null) {
             query.complete(
