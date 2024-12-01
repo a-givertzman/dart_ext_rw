@@ -66,7 +66,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry_);
-      return _fetchWith(sql).then((result) {
+      return _fetch(sql).then((result) {
         return switch(result) {
           Ok() => () {
             return Ok<T, Failure>(entry_);
@@ -92,7 +92,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry);
-      return _fetchWith(sql).then((result) {
+      return _fetch(sql).then((result) {
         return switch(result) {
           Ok() => () {
             return const Ok<void, Failure>(null);
@@ -118,7 +118,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry);
-      return _fetchWith(sql).then((result) {
+      return _fetch(sql).then((result) {
         return switch(result) {
           Ok() => () {
             return const Ok<void, Failure>(null);
@@ -138,7 +138,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
   }
   ///
   /// Fetchs data with new [sql]
-  Future<Result<void, Failure>> _fetchWith(Sql sql) {
+  Future<Result<void, Failure>> _fetch(Sql sql) {
     final query = SqlQuery(
       database: _database,
       sql: sql.build(),
