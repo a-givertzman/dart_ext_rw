@@ -145,4 +145,13 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
         stackTrace: StackTrace.current,
     ));
   }
+  //
+  //
+  @override
+  Future<void> close() {
+    return Future.wait([
+      _read.close(),
+      _write.close(),
+    ]);
+  }
 }

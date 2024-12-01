@@ -181,5 +181,10 @@ class ApiRequest {
     } catch (error) {
       _log.warning('[.close] error: $error');
     }
-  }  
+  }
+  ///
+  /// Closes connection
+  Future<void> close() {
+    return _messages.close();
+  }
 }

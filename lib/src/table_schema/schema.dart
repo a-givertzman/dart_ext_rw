@@ -17,4 +17,7 @@ abstract interface class Schema<T extends SchemaEntryAbstract, P> {
   ///
   /// Deletes entry from the data source
   Future<Result<void, Failure>> delete(T entry);
+  ///
+  /// Closes connection
+  Future<void> close();
 }

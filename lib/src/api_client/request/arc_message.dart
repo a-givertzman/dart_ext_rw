@@ -90,4 +90,10 @@ class ArcMessage {
   String toString() {
     return 'ArcMessage{ keep: $keep, done: $done }';
   }
+  ///
+  /// Closes connection
+  Future<void> close() {
+    _queries.clear();
+    return _message.close();
+  }
 }

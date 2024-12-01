@@ -164,4 +164,10 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
       },
     );
   }
+  //
+  //
+  @override
+  Future<void> close() {
+    return _request.close();
+  }
 }

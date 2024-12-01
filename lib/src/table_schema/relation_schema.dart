@@ -106,4 +106,15 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
     }
     return result;
   }
+  //
+  //
+  @override
+  Future<void> close() {
+    return Future.wait([
+      _schema.close(),
+      ..._relations.values.map((schema) {
+        return schema.close();
+      }),
+    ]);
+  }
 }

@@ -93,4 +93,10 @@ class SqlRead<T extends SchemaEntryAbstract, P> implements SchemaRead<T, P> {
       },
     );
   }
+  //
+  //
+  @override
+  Future<void> close() {
+    return _request.close();
+  }
 }

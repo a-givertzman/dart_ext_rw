@@ -123,4 +123,16 @@ class Messages {
         },
       );
   }
+  ///
+  /// Closes connection
+  Future<void> close() {
+    if (_connection case Some<Completer<Result<ArcMessage, Failure>>>(value: final connection)) {
+      connection.complete(
+        Err(Failure(message: 'Messages.close | Connection closed', stackTrace: StackTrace.current)),
+      );
+    }
+    return Future.wait(_messages.map((msg) {
+      return msg.close();
+    }));
+  }
 }
