@@ -160,7 +160,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
         };
       },
       onError: (err) {
-        return Err<List<T>, Failure>(Failure(message: '$runtimeType._fetchWith | Error: $err', stackTrace: StackTrace.current));
+        return Err<List<T>, Failure>(Failure(message: '$runtimeType._fetch | Error: $err', stackTrace: StackTrace.current));
       },
     );
   }
