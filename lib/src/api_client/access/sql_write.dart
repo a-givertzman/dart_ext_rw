@@ -164,29 +164,4 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
       },
     );
   }
-  // ///
-  // ///
-  // T _makeEmptyEntry() {
-  //   // final constructor = _entryEmptyFactories[T];
-  //   return _entryEmptyFactories();
-  //   // if (constructor != null) {
-  //   // } else {
-  //   //   throw Failure(
-  //   //     message: "$runtimeType._makeEntry | Can't find constructor for $T", 
-  //   //     stackTrace: StackTrace.current,
-  //   //   );
-  //   // }
-  // }
-  // ///
-  // ///
-  // T _makeEntry(Map<String, dynamic> row) {
-  //   return _entryFromFactories(row);
-  //   // final constructor = _entryFromFactories[T];
-  //   // if (_entryFromFactories != null) {
-  //   // }
-  //   // throw Failure(
-  //   //   message: "$runtimeType._makeEntry | Can't find constructor for $T", 
-  //   //   stackTrace: StackTrace.current,
-  //   // );
-  // }
 }
