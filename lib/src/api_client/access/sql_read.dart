@@ -47,17 +47,17 @@ class SqlRead<T extends SchemaEntryAbstract, P> implements SchemaRead<T, P> {
   //
   //
   @override
-  Future<Result<List<T>, Failure>> fetch({P? params}) {
+  Future<Result<List<T>, Failure>> fetch({P? params, bool? keepAlive}) {
     _sql = _sqlBuilder(_sql, params);
-    return _fetch(_sql);
+    return _fetch(_sql, keepAlive ?? _keepAlive);
   }
   ///
-  /// Fetchs data with new [sql]
-  Future<Result<List<T>, Failure>> _fetch(Sql sql) {
+  /// Fetchs data with [sql]
+  Future<Result<List<T>, Failure>> _fetch(Sql sql, bool keepAlive) {
     final query = SqlQuery(
       database: _database,
       sql: sql.build(),
-      keepAlive: _keepAlive,
+      keepAlive: keepAlive,
     );
     _log.debug("._fetch | query: $query");
     return _request.fetchWith(query)

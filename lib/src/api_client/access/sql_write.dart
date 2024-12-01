@@ -55,7 +55,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
   //
   //
   @override
-  Future<Result<T, Failure>> insert(T? entry) {
+  Future<Result<T, Failure>> insert(T? entry, {bool? keepAlive}) {
     T entry_;
     if (entry != null) {
       entry_ = entry;
@@ -66,7 +66,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry_);
-      return _fetch(sql).then((result) {
+      return _fetch(sql, keepAlive ?? _keepAlive).then((result) {
         return switch(result) {
           Ok() => () {
             return Ok<T, Failure>(entry_);
@@ -87,12 +87,12 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
   //
   //
   @override
-  Future<Result<void, Failure>> update(T entry) {
+  Future<Result<void, Failure>> update(T entry, {bool? keepAlive}) {
     final builder = _updateSqlBuilder;
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry);
-      return _fetch(sql).then((result) {
+      return _fetch(sql, keepAlive ?? _keepAlive).then((result) {
         return switch(result) {
           Ok() => () {
             return const Ok<void, Failure>(null);
@@ -113,12 +113,12 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
   //
   //
   @override
-  Future<Result<void, Failure>> delete(T entry) {
+  Future<Result<void, Failure>> delete(T entry, {bool? keepAlive}) {
     final builder = _deleteSqlBuilder;
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry);
-      return _fetch(sql).then((result) {
+      return _fetch(sql, keepAlive ?? _keepAlive).then((result) {
         return switch(result) {
           Ok() => () {
             return const Ok<void, Failure>(null);
@@ -137,12 +137,12 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
     );
   }
   ///
-  /// Fetchs data with new [sql]
-  Future<Result<void, Failure>> _fetch(Sql sql) {
+  /// Fetchs data with [sql]
+  Future<Result<void, Failure>> _fetch(Sql sql, bool keepAlive) {
     final query = SqlQuery(
       database: _database,
       sql: sql.build(),
-      keepAlive: _keepAlive,
+      keepAlive: keepAlive,
     );
     _log.debug("._fetchWith | query: $query");
     return _request.fetch()

@@ -51,7 +51,7 @@ class SqlAccess<T, P> {
     return _fetch(_sql, keepAlive ?? _keepAlive);
   }
   ///
-  /// Fetchs data with new [sql]
+  /// Fetchs data with [sql]
   Future<Result<List<T>, Failure>> _fetch(Sql sql, bool keepAlive) {
     final query = SqlQuery(
       database: _database,
