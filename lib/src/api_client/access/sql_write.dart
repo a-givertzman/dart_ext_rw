@@ -145,7 +145,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
       keepAlive: keepAlive,
     );
     _log.debug("._fetch | query: $query");
-    return _request.fetch()
+    return _request.fetchWith(query)
       .then((result) {
         return switch (result) {
           Ok(:final value) => () {
