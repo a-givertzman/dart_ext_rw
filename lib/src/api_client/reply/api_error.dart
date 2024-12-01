@@ -1,7 +1,7 @@
 ///
 /// Contains errors from API
 class ApiError {
-  // final _log = Logger('ApiError');
+  // final _log = Log('ApiError');
   final Map<String, dynamic>? _errors;
   ///
   ApiError({
