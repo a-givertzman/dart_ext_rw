@@ -40,4 +40,8 @@ abstract interface class TableSchemaAbstract<T extends SchemaEntryAbstract, P> i
   ///
   /// Fetchs data of the relation schemas only (with existing sql)
   Future<Result<void, Failure>> fetchRelations();
+  ///
+  /// Closes connection
+  @override
+  Future<void> close();
 }
