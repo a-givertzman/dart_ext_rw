@@ -83,7 +83,7 @@ class Message {
               input = null;
             case None():
               isSome = false;
-              _log.debug('.listen.onData | None');
+              // _log.debug('.listen.onData | None');
           }
         }
       },

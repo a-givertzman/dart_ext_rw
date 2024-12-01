@@ -80,7 +80,7 @@ class Messages {
         _connection = Some(connection);
         _socket(id, bytes, keepAlive).then(
           (result) {
-            _log.debug('._connect | New connection result: $result');
+            // _log.debug('._connect | New connection result: $result');
             switch (result) {
               case Ok<ArcMessage, Failure>(value: final message):
                 connection.complete(Ok(message));
@@ -114,7 +114,7 @@ class Messages {
           socket.setOption(SocketOption.tcpNoDelay, true);
           final message = ArcMessage(Message(socket), keepAlive);
           _messages.add(message);
-          _log.warning('._socket | _messages $_messages');
+          // _log.warning('._socket | _messages $_messages');
           return Ok(message);
         },
         onError: (err) {

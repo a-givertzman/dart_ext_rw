@@ -72,7 +72,7 @@ class ArcMessage {
   /// - Returns reply or error
   Future<Result<ApiReply, Failure>> fetch(int id, Bytes bytes) {
     if (!_queries.containsKey(id)) {
-      _log.debug('.fetch | Sending  id: \'$id\',  sql: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
+      // _log.debug('.fetch | Sending  id: \'$id\',  bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
       final Completer<Result<ApiReply, Failure>> completer = Completer();
       _queries[id] = completer;
       _message.add(id, bytes);
