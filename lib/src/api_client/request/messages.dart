@@ -16,7 +16,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// - Can be fetched multiple times
 /// - Keeps socket connection opened if `query` has keepAlive = true
 class Messages {
-  static final _log = const Log('Messages');
+  static final _log = const Log('Messages');//..level = LogLevel.debug;
   final List<ArcMessage> _messages = [];
   final ApiAddress _address;
   final Duration _timeout;

@@ -22,7 +22,17 @@ class SchemaEntry implements SchemaEntryAbstract {
     _isEmpty = map != null && map.isNotEmpty ? false : true;
   ///
   /// Creates entry from database row
-  // SchemaEntry.from(Map<String, dynamic> row);
+  SchemaEntry.from(Map<String, dynamic> row, {Map<String, FieldValue>? def}):
+    _isEmpty = false,
+    _map = {} {
+    for (final MapEntry(:key, :value) in def?.entries ?? {}.entries) {
+      final rowValue = row[key];
+      _map[key] = rowValue != null ? FieldValue(rowValue) : value;
+    }
+    for (final MapEntry(:key, :value) in row.entries) {
+      _map[key] = FieldValue(value);
+    }
+  }
   ///
   /// Creates entry with empty / default values
   SchemaEntry.empty(): 
