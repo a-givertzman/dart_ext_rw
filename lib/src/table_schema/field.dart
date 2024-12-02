@@ -1,10 +1,11 @@
 
 import 'package:ext_rw/src/table_schema/relation.dart';
+import 'package:ext_rw/src/table_schema/schema_entry_abstract.dart';
 import 'package:flutter/widgets.dart';
 
 ///
 /// Replresentation settings for table column
-class Field<T> {
+class Field<T extends SchemaEntryAbstract> {
   final String _key;
   final String _title;
   final bool _hidden;
@@ -53,7 +54,7 @@ class Field<T> {
   ///
   /// Returns cell widget build from specified [builder],  
   /// Or by default retirns Text(value)
-  Widget Function(BuildContext, T)? get builder => _builder;
+  Widget Function(BuildContext context, T entry)? get builder => _builder;
   //
   //
   @override
