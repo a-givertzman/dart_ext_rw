@@ -5,16 +5,17 @@ import 'package:hmi_core/hmi_core_result.dart';
 
 class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
   late final Log _log;
-  final ApiAddress _address;
-  final String _authToken;
+  // final ApiAddress _address;
+  // final String _authToken;
   final String _database;
   final bool _keepAlive;
-  final bool _debug;
+  // final bool _debug;
   final SqlBuilder<T>? _insertSqlBuilder;
   final SqlBuilder<T>? _updateSqlBuilder;
   final SqlBuilder<T>? _deleteSqlBuilder;
   // final T Function(Map<String, dynamic> row) _entryFromFactories;
   final T Function() _emptyEntryBuilder;
+  final ApiRequest _request;
   ///
   ///
   SqlWrite({
@@ -29,22 +30,32 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
     // required T Function(Map<String, dynamic> row) entryFromFactories,
     required T Function() emptyEntryBuilder,
   }) :
-    _address = address,
-    _authToken = authToken,
+    // _address = address,
+    // _authToken = authToken,
     _database = database,
     _keepAlive = keepAlive,
-    _debug = debug,
+    // _debug = debug,
     _insertSqlBuilder = insertSqlBuilder,
     _updateSqlBuilder = updateSqlBuilder,
     _deleteSqlBuilder = deleteSqlBuilder,
     // _entryFromFactories = entryFromFactories,
-    _emptyEntryBuilder = emptyEntryBuilder {
+    _emptyEntryBuilder = emptyEntryBuilder,
+    _request = ApiRequest(
+      address: address, 
+      authToken: authToken, 
+      debug: debug,
+      query: SqlQuery(
+        database: database,
+        sql: '',
+        keepAlive: keepAlive,
+      ),
+    ) {
     _log = Log("$runtimeType");
   }
   //
   //
   @override
-  Future<Result<T, Failure>> insert(T? entry) {
+  Future<Result<T, Failure>> insert(T? entry, {bool? keepAlive}) {
     T entry_;
     if (entry != null) {
       entry_ = entry;
@@ -55,7 +66,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry_);
-      return _fetchWith(sql).then((result) {
+      return _fetch(sql, keepAlive ?? _keepAlive).then((result) {
         return switch(result) {
           Ok() => () {
             return Ok<T, Failure>(entry_);
@@ -76,12 +87,12 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
   //
   //
   @override
-  Future<Result<void, Failure>> update(T entry) {
+  Future<Result<void, Failure>> update(T entry, {bool? keepAlive}) {
     final builder = _updateSqlBuilder;
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry);
-      return _fetchWith(sql).then((result) {
+      return _fetch(sql, keepAlive ?? _keepAlive).then((result) {
         return switch(result) {
           Ok() => () {
             return const Ok<void, Failure>(null);
@@ -102,12 +113,12 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
   //
   //
   @override
-  Future<Result<void, Failure>> delete(T entry) {
+  Future<Result<void, Failure>> delete(T entry, {bool? keepAlive}) {
     final builder = _deleteSqlBuilder;
     if (builder != null) {
       final initialSql = Sql(sql: '');
       final sql = builder(initialSql, entry);
-      return _fetchWith(sql).then((result) {
+      return _fetch(sql, keepAlive ?? _keepAlive).then((result) {
         return switch(result) {
           Ok() => () {
             return const Ok<void, Failure>(null);
@@ -126,62 +137,37 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
     );
   }
   ///
-  /// Fetchs data with new [sql]
-  Future<Result<void, Failure>> _fetchWith(Sql sql) {
-    final request = ApiRequest(
-      address: _address, 
-      authToken: _authToken, 
-      debug: _debug,
-      query: SqlQuery(
-        database: _database,
-        sql: sql.build(),
-        keepAlive: _keepAlive,
-      ),
+  /// Fetchs data with [sql]
+  Future<Result<void, Failure>> _fetch(Sql sql, bool keepAlive) {
+    final query = SqlQuery(
+      database: _database,
+      sql: sql.build(),
+      keepAlive: keepAlive,
     );
-    _log.debug("._fetchWith | request: $request");
-    return request.fetch().then((result) {
-      return switch (result) {
-        Ok(:final value) => () {
-          final reply = value;
-          if (reply.hasError) {
-            return Err<void, Failure>(Failure(message: reply.error.message, stackTrace: StackTrace.current));
-          } else {
-            // final List<T> entries = [];
-            // final rows = reply.data;
-            // for (final row in rows) {
-            //   final entry = _makeEntry(row);
-            //   entries.add(entry);
-            // }
-            return const Ok<void, Failure>(null);
-          }
-        }(), 
-        Err(:final error) => Err<void, Failure>(error),
-      };
-    });
+    _log.debug("._fetch | query: $query");
+    return _request.fetchWith(query)
+      .then((result) {
+        return switch (result) {
+          Ok(:final value) => () {
+            final reply = value;
+            if (reply.hasError) {
+              return Err<void, Failure>(Failure(message: reply.error.message, stackTrace: StackTrace.current));
+            } else {
+              return const Ok<void, Failure>(null);
+            }
+          }(), 
+          Err(:final error) => Err<void, Failure>(error),
+        };
+      },
+      onError: (err) {
+        return Err<List<T>, Failure>(Failure(message: '$runtimeType._fetch | Error: $err', stackTrace: StackTrace.current));
+      },
+    );
   }
-  // ///
-  // ///
-  // T _makeEmptyEntry() {
-  //   // final constructor = _entryEmptyFactories[T];
-  //   return _entryEmptyFactories();
-  //   // if (constructor != null) {
-  //   // } else {
-  //   //   throw Failure(
-  //   //     message: "$runtimeType._makeEntry | Can't find constructor for $T", 
-  //   //     stackTrace: StackTrace.current,
-  //   //   );
-  //   // }
-  // }
-  // ///
-  // ///
-  // T _makeEntry(Map<String, dynamic> row) {
-  //   return _entryFromFactories(row);
-  //   // final constructor = _entryFromFactories[T];
-  //   // if (_entryFromFactories != null) {
-  //   // }
-  //   // throw Failure(
-  //   //   message: "$runtimeType._makeEntry | Can't find constructor for $T", 
-  //   //   stackTrace: StackTrace.current,
-  //   // );
-  // }
+  //
+  //
+  @override
+  Future<void> close() {
+    return _request.close();
+  }
 }

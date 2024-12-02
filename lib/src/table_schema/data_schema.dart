@@ -46,4 +46,13 @@ class DataSchema<T extends SchemaEntryAbstract, P> implements Schema<T, P> {
     final write = _write;
     return write.delete(entry);
   }
+  //
+  //
+  @override
+  Future<void> close() {
+    return Future.wait([
+      _read.close(),
+      _write.close(),
+    ]);
+  }
 }

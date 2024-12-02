@@ -11,6 +11,9 @@ abstract interface class SchemaRead<T extends SchemaEntryAbstract, P> {
   ///
   /// Fetchs entries with new sql built from [params]
   Future<Result<List<T>, Failure>> fetch({P? params});
+  ///
+  /// Closes connection
+  Future<void> close();
 }
 
 ///
@@ -27,5 +30,11 @@ class _SchemaReadEmpty<T extends SchemaEntryAbstract, P> implements SchemaRead<T
       message: "$runtimeType.fetch | read - not initialized", 
       stackTrace: StackTrace.current,
     )));
+  }
+  //
+  //
+  @override
+  Future<void> close() {
+    return Future.value();
   }
 }

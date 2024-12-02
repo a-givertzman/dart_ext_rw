@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:ext_rw/src/api_client/reply/api_error.dart';
-import 'package:logging/logging.dart';
+// import 'package:hmi_core/hmi_core_log.dart';
 
 class ApiReply {
-  final _log = Logger('ApiReply');
+  // final _log = Log('ApiReply');
   late final String _authToken;
   late final String _id;
   late final String _query;
@@ -28,7 +28,7 @@ class ApiReply {
     // _log.fine('.fromJson | jsonString: $jsonString');
     try {
       final jsonMap = json.decode(jsonString, );
-      _log.fine('.fromJson | jsonMap: $jsonMap');
+      // _log.fine('.fromJson | jsonMap: $jsonMap');
       _authToken = jsonMap['authToken'] ?? '';
       _id = jsonMap['id'] ?? '';
       _query = jsonMap['query'] ?? '';
@@ -56,7 +56,7 @@ class ApiReply {
   ApiError get error => _error;
   ///
   bool get hasError => _error.isNotEmpty;
-  ///
+  //
   @override
   String toString() {
     return '''$ApiReply {

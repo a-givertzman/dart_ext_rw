@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:uuid/uuid.dart';
-
+///
+/// Query for `executable` API service
 class ExecutableQuery implements ApiQueryType {
   late String _id;
   final String _script;
@@ -18,13 +19,14 @@ class ExecutableQuery implements ApiQueryType {
     _script = script,
     _params = params,
     _keepAlive = keepAlive;
-  ///
+  //
   @override
   bool valid() {
     return true;
     /// TODO some simplest validation to be implemented
   }
-  ///
+  //
+  //
   @override
   String buildJson({String authToken = '', bool debug = false}) {
     _id = const Uuid().v1();
@@ -40,9 +42,15 @@ class ExecutableQuery implements ApiQueryType {
     });
     return jsonString;
   }
-  ///
+  //
+  //
   @override
   String get id => _id;
-  ///
+  //
+  //
+  @override
+  bool get keepAlive => _keepAlive;
+  //
+  //
   String get script => _script;
 }

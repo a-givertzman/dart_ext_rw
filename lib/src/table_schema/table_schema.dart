@@ -24,7 +24,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
     _fields = fields,
     _read = read,
     _write = write {
-      _log = Log("$runtimeType");
+      _log = Log("$runtimeType")..level = LogLevel.info;
     }
   ///
   /// Returns a list of table field names
@@ -38,37 +38,47 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   List<String> get keys {
     return _fields.map((field) => field.key).toList();
   }
-  ///
-  ///
+  //
+  //
   @override
   List<T> get entries => _entries.values.toList();
   ///
   /// Fetchs data with new sql built from [values]
   @override
   Future<Result<List<T>, Failure>> fetch(P? params) async {
-    return _read.fetch(params: params).then((result) {
-      _log.debug('.fetch | result: $result');
-      return switch(result) {
-        Ok<List<T>, Failure>(value: final entries) => () {
-          _log.debug('.fetch | result rows: $entries');
-          _entries.clear();
-          for (final entry in entries) {
-            _log.debug('.fetch | entry[${entry.key}]: $entry');
-            if (_entries.containsKey(entry.key)) {
-              throw Failure(
-                message: "$runtimeType.fetchWith | dublicated entry key: ${entry.key}", 
-                stackTrace: StackTrace.current,
-              );
-            }
-            _entries[entry.key] = entry;
-          } 
-          return Ok<List<T>, Failure>(_entries.values.toList());
-        }(),
-        Err<List<T>, Failure>(:final error) => () {
-          return Err<List<T>, Failure>(error);
-        }(),
-      };
-    });
+    return _read.fetch(params: params).then(
+      (result) {
+        _log.debug('.fetch | result: $result');
+        return switch(result) {
+          Ok<List<T>, Failure>(value: final entries) => () {
+            _log.debug('.fetch | result rows: $entries');
+            _entries.clear();
+            for (final entry in entries) {
+              _log.debug('.fetch | entry[${entry.key}]: $entry');
+              if (_entries.containsKey(entry.key)) {
+                return Err<List<T>, Failure>(Failure(
+                  message: "$runtimeType.fetch | dublicated entry key: ${entry.key}", 
+                  stackTrace: StackTrace.current,
+                ));
+              }
+              _entries[entry.key] = entry;
+            } 
+            return Ok<List<T>, Failure>(_entries.values.toList());
+          }(),
+          Err<List<T>, Failure>(:final error) => () {
+            return Err<List<T>, Failure>(error);
+          }(),
+        };
+      },
+      onError: (err) {
+        return Err<List<T>, Failure>(
+          Failure(
+              message: "$runtimeType.fetch | Error: $err", 
+              stackTrace: StackTrace.current,
+            ),
+        );
+      },
+    );
   }
   ///
   /// Inserts new entry into the table schema
@@ -134,5 +144,14 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
         message: '$runtimeType.relation | method does not exists', 
         stackTrace: StackTrace.current,
     ));
+  }
+  //
+  //
+  @override
+  Future<void> close() {
+    return Future.wait([
+      _read.close(),
+      _write.close(),
+    ]);
   }
 }

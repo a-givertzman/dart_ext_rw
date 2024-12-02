@@ -36,12 +36,14 @@ class FakeServer {
   ///
   /// Starting server on the specified [host]:[port] address
   Future start() {
+    _log.debug('.start | Binding SocketServer on: $host:$port}');
     return ServerSocket.bind(host, port).then(
       (server) {
-        _log.debug('.bind | SocketServer ready on: ${server.address}');
+        _log.debug('.bind | SocketServer ready on: ${server.address.host}:${server.port}');
         server.listen(
           (socket) {
-            _log.debug('.listen | Connection on: ${socket.address}');
+            _log.debug('.listen | Incoming connection from: ${socket.address.host}:${socket.port}');
+            int lastId = -1;
             final message = ParseData(
               field: ParseSize(
                 size: FieldSize.def(),
@@ -70,11 +72,15 @@ class FakeServer {
                   switch (message.parse(input)) {
                     case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
                       _log.debug('.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
+                      lastId = id.id;
                       Future.delayed(Duration(milliseconds: 500), () {
                         final reply = messageBuild.build(bytes, id: id.id);
-                        socket.add(reply);
+                        try {
+                          socket.add(reply);
+                        } catch (err) {
+                          _log.debug('.listen.onData | Send error: $err');
+                        }
                       });
-                      _log.debug('.listen.onData | Microtask started');
                       input = null;
                     case None():
                       _log.debug('.listen.onData | Parsed | None');
@@ -83,16 +89,16 @@ class FakeServer {
                 }
               },
               onError: (err) {
-                _log.error('.listen.onError | Error: $err');
+                _log.error('.listen.onError | lastId: $lastId,  Error: $err');
               },
               onDone: () {
-                _log.debug('.listen.onDone | Done');
+                _log.debug('.listen.onDone | lastId: $lastId, Done');
               },
             );
           },
           onError: (err) {
             _log.error('.listen.onError | Error: $err');
-            server.close();
+            // server.close();
           },
           onDone: () {
             _log.debug('.listen.onDone | Done');
@@ -114,34 +120,9 @@ void main() {
   group('ApiRequest.fetch', () {
     ///
     ///
-    test('.socket()', () async {
-      final (host, port) = ('127.0.0.1', 5061);
-      FakeServer(host, port).start();
-      log.debug('.Client.connect | Start connect...');
-      Future<Socket> connect() async {
-        Socket? socket;
-        int connectionErr = 0;
-        while (socket == null) {
-          socket = await Socket.connect(host, port)
-            .timeout(Duration(seconds: 3), onTimeout: () {
-                log.error('.Client.connect | Timeout error');          
-                throw Exception('.Client.connect | Timeout error');
-            })
-            .then(
-              (s) => s,
-                onError: (err) {
-                  if (connectionErr++ >= 3) {
-                    log.error('.Client.connect.onError | Error: $err');
-                    throw Exception('.Client.connect | Timeout error');
-                  }
-                  log.warning('.Client.connect.onError | Error: $err');
-              },
-            );
-        }
-        return socket;
-      }
-      final socket = await connect();
-      log.debug('.Client.connect | Socket connected on: ${socket.address}');
+    test('with keepAlive', () async {
+      final (host, port) = ('0.0.0.0', 5061);
+      await FakeServer(host, port).start();
       List<Future> replies = [];
       final time = Stopwatch()..start();
       final request = ApiRequest(
@@ -150,7 +131,36 @@ void main() {
         query: FakeApiQueryType(valid: true, query: ''),
         
       );
-      for (final i in Iterable.generate(100)) {
+      for (final i in Iterable.generate(3)) {
+        final query = FakeApiQueryType(valid: true, query: 'Client.Request$i', keepAlive: true);
+        final reply = request.fetchWith(query).then(
+          (reply) {
+            log.info('.request.fetch | reply: $reply');
+            // log.info('.request.fetch | reply text: ${String.fromCharCodes(reply)}');
+          },
+          onError: (err) {
+            log.error('.request.fetch.onError | Error: $err');
+          },
+        );
+        replies.add(reply);
+        await Future.delayed(Duration(milliseconds: 10));
+      }
+      await Future.wait(replies);
+      log.info('.request | All (${replies.length}) replies finished');
+      log.info('.request | Elapsed: ${time.elapsed}');
+    });
+    test('without keepAlive', () async {
+      final (host, port) = ('0.0.0.0', 5061);
+      await FakeServer(host, port).start();
+      List<Future> replies = [];
+      final time = Stopwatch()..start();
+      final request = ApiRequest(
+        address: ApiAddress(host: host, port: port),
+        authToken: '***token***',
+        query: FakeApiQueryType(valid: true, query: ''),
+        
+      );
+      for (final i in Iterable.generate(3)) {
         final query = FakeApiQueryType(valid: true, query: 'Client.Request$i');
         final reply = request.fetchWith(query).then(
           (reply) {
@@ -159,10 +169,10 @@ void main() {
           },
           onError: (err) {
             log.error('.request.fetch.onError | Error: $err');
-            socket.close();
           },
         );
         replies.add(reply);
+        await Future.delayed(Duration(milliseconds: 10));
       }
       await Future.wait(replies);
       log.info('.request | All (${replies.length}) replies finished');

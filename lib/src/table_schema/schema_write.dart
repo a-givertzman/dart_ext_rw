@@ -17,6 +17,9 @@ abstract interface class SchemaWrite<T extends SchemaEntryAbstract> {
   ///
   /// Deletes entry from the source
   Future<Result<void, Failure>> delete(T entry);
+  ///
+  /// Closes connection
+  Future<void> close();
 }
 
 ///
@@ -51,5 +54,11 @@ class _SchemaWriteEmpty<T extends SchemaEntryAbstract> implements SchemaWrite<T>
       message: "$runtimeType.update | write - not initialized", 
       stackTrace: StackTrace.current,
     )));
+  }
+  //
+  //
+  @override
+  Future<void> close() {
+    return Future.value();
   }
 }
