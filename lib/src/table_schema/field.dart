@@ -34,30 +34,26 @@ class Field<T> {
     _relation = relation ?? const Relation.empty(),
     _builder = builder;
   ///
-  ///
+  /// Returns [key] of [Field]
+  ///   - database column name if not relation
+  ///   - relation key if this is relation column
   String get key => _key;
   ///
-  ///
+  /// Display name of [Field] if not specified, [key] will be displayed
   String get title => _title;
   ///
-  ///
+  /// Column will not be displayed if `true`
   bool get isHidden => _hidden;
   ///
-  ///
+  /// Can be edited if `true`
   bool get isEditable => _edit;
   ///
-  ///
+  /// Returns [Relations] if specified, or Relation.empty will be returned
   Relation get relation => _relation;
   ///
   /// Returns cell widget build from specified [builder],  
   /// Or by default retirns Text(value)
-  Widget build(BuildContext context, T value) {
-    final builder = _builder;
-    if (builder != null) {
-      return builder(context, value);
-    }
-    return Text('$value');
-  }
+  Widget Function(BuildContext, T)? get builder => _builder;
   //
   //
   @override
