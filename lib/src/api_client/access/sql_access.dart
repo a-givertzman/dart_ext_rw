@@ -2,61 +2,64 @@ import 'package:ext_rw/ext_rw.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_result.dart';
-
+///
+/// Performs a request(s) to the API server
+/// - Can be fetched multiple times if `keep` is true
+/// - Keeps socket connection opened if `query` has `keep` = true
+/// - Call close if `keep` is true to close the connection
 class SqlAccess<T, P> {
   late final Log _log;
-  // final ApiAddress _address;
-  // final String _authToken;
   final String _database;
-  final bool _keepAlive;
-  // final bool _debug;
   final SqlBuilder<P?> _sqlBuilder;
   final T Function(Map<String, dynamic> row)? _entryBuilder;
   final ApiRequest _request;
   Sql _sql = Sql(sql: '');
   ///
-  ///
-  SqlAccess({
+  /// - Can be fetched multiple times if `keep` is `true`
+  /// - `authToken` - authentication parameter, dipends on authentication kind
+  /// - `address` - IP and port of the API server
+  /// - `database` - database name
+  /// - `timeout` - time to wait read, write & connection until timeout error, default - 3 sec
+  /// - `keep` - socket connection opened if `true`, default `false`
+    SqlAccess({
     required ApiAddress address,
     required String authToken,
     required String database,
-    bool keepAlive = false,
+    Duration timeout = const Duration(milliseconds: 3000),
+    bool keep = false,
     bool debug = false,
     required SqlBuilder<P?> sqlBuilder,
     T Function(Map<String, dynamic> row)? entryBuilder,
   }) :
-    // _address = address,
-    // _authToken = authToken,
     _database = database,
-    _keepAlive = keepAlive,
-    // _debug = debug,
     _sqlBuilder = sqlBuilder,
     _entryBuilder = entryBuilder,
     _request = ApiRequest(
       address: address, 
       authToken: authToken, 
+      timeout: timeout,
+      keep: keep,
       debug: debug,
       query: SqlQuery(
         database: database,
         sql: '',
-        keepAlive: keepAlive,
       ),
     ) {
     _log = Log("$runtimeType");
   }
-  //
-  //
-  Future<Result<List<T>, Failure>> fetch({P? params, bool? keepAlive}) {
+  ///
+  /// Sends specified query to the remote
+  /// - Keeps socket connection opened if [keep] = true
+  Future<Result<List<T>, Failure>> fetch({P? params}) {
     _sql = _sqlBuilder(_sql, params);
-    return _fetch(_sql, keepAlive ?? _keepAlive);
+    return _fetch(_sql);
   }
   ///
   /// Fetchs data with [sql]
-  Future<Result<List<T>, Failure>> _fetch(Sql sql, bool keepAlive) {
+  Future<Result<List<T>, Failure>> _fetch(Sql sql) {
     final query = SqlQuery(
       database: _database,
       sql: sql.build(),
-      keepAlive: keepAlive,
     );
     _log.debug("._fetch | request: $query");
     final entryBuilder = _entryBuilder ?? (dynamic _) {return null as T;};
@@ -92,5 +95,10 @@ class SqlAccess<T, P> {
         return Err<List<T>, Failure>(Failure(message: '$runtimeType._fetch | Error: $err', stackTrace: StackTrace.current));
       },
     );
+  }
+  ///
+  /// Closes connection
+  Future<void> close() {
+    return _request.close();
   }
 }

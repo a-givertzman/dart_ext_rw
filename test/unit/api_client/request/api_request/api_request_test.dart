@@ -129,10 +129,10 @@ void main() {
         address: ApiAddress(host: host, port: port),
         authToken: '***token***',
         query: FakeApiQueryType(valid: true, query: ''),
-        
+        keep: true,
       );
       for (final i in Iterable.generate(3)) {
-        final query = FakeApiQueryType(valid: true, query: 'Client.Request$i', keepAlive: true);
+        final query = FakeApiQueryType(valid: true, query: 'Client.Request$i');
         final reply = request.fetchWith(query).then(
           (reply) {
             log.info('.request.fetch | reply: $reply');

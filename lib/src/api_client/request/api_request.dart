@@ -29,6 +29,7 @@ class ApiRequest {
   final String _authToken;
   final ApiQueryType _query;
   final Duration _timeout;
+  final bool _keep;
   final bool _debug;
   final Messages _messages;
   int _id = 0;
@@ -43,12 +44,14 @@ class ApiRequest {
     required ApiAddress address,
     required ApiQueryType query,
     Duration timeout = const Duration(milliseconds: 3000),
+    bool keep = false,
     bool debug = false,
   }) :
     _authToken = authToken,
     _address = address,
     _query = query,
     _timeout = timeout,
+    _keep = keep,
     _debug = debug,
     _messages = Messages(address: address, timeout: timeout);
   ///
@@ -58,35 +61,43 @@ class ApiRequest {
   /// Sends created request to the remote
   /// - Returns reply or error
   Future<Result<ApiReply, Failure>> fetch() async {
-    final queryJson = _query.buildJson(authToken: _authToken, debug: _debug);
+    final queryJson = _query.buildJson(authToken: _authToken, debug: _debug, keep: _keep);
     final bytes = utf8.encode(queryJson);
     if (kIsWeb) {
-      return _fetchWebSocket(bytes, _query.keepAlive);
+      return _fetchWebSocket(bytes);
     } else {
-      return _fetchSocket(bytes, _query.keepAlive);
+      return _fetchSocket(bytes);
     }
   }
   ///
   /// Sends specified `query` to the remote
   /// - Returns reply or error
   Future<Result<ApiReply, Failure>> fetchWith(ApiQueryType query) async {
-    final queryJson = query.buildJson(authToken: _authToken, debug: _debug);
+    final queryJson = query.buildJson(authToken: _authToken, debug: _debug, keep: _keep);
     final bytes = utf8.encode(queryJson);
     if (kIsWeb) {
-      return _fetchWebSocket(bytes, query.keepAlive);
+      return _fetchWebSocket(bytes);
     } else {
-      return _fetchSocket(bytes, query.keepAlive);
+      return _fetchSocket(bytes);
     }
   }
   ///
   /// Fetching on tcp socket
-  Future<Result<ApiReply, Failure>> _fetchSocket(Bytes bytes, bool keepAlive) async {
+  Future<Result<ApiReply, Failure>> _fetchSocket(Bytes bytes) async {
     _id++;
-    return _messages.fetch(_id, bytes, keepAlive);
+    return _messages.fetch(_id, bytes, _keep).then(
+      (value) {
+        if (!_keep) {
+          _messages.close();
+        }
+        return value;
+      },
+      onError: (error) => error,
+    );
   }
   ///
   /// Fetching on web socket
-  Future<Result<ApiReply, Failure>> _fetchWebSocket(Bytes bytes, bool keepAlive) {
+  Future<Result<ApiReply, Failure>> _fetchWebSocket(Bytes bytes) {
     return WebSocket.connect('ws://${_address.host}:${_address.port}')
       .then((wSocket) async {
         return _sendWeb(wSocket, bytes)
