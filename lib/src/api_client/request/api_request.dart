@@ -21,8 +21,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 // import 'package:web_socket_channel/io.dart';
 ///
 /// Performs the request(s) to the API server
-/// - Can be fetched multiple times
-/// - Keeps socket connection opened if `query` has keepAlive = true
+/// - ApiRequest.keep can be fetched multiple times, call `close()` at the end
 class ApiRequest {
   static final _log = const Log('ApiRequest');
   final ApiAddress _address;
@@ -34,7 +33,7 @@ class ApiRequest {
   final Messages _messages;
   int _id = 0;
   ///
-  /// Request to the API server
+  /// Single request to the API server
   /// - authToken - authentication parameter, dipends on authentication kind
   /// - address - IP and port of the API server
   /// - query - paload data to be sent to the API server, containing specific kind of API query
@@ -44,14 +43,34 @@ class ApiRequest {
     required ApiAddress address,
     required ApiQueryType query,
     Duration timeout = const Duration(milliseconds: 3000),
-    bool keep = false,
     bool debug = false,
   }) :
     _authToken = authToken,
     _address = address,
     _query = query,
     _timeout = timeout,
-    _keep = keep,
+    _keep = false,
+    _debug = debug,
+    _messages = Messages(address: address, timeout: timeout);
+  ///
+  /// Multiple requests to the API server
+  /// - Must be closed by calling `close()`
+  /// - authToken - authentication parameter, dipends on authentication kind
+  /// - address - IP and port of the API server
+  /// - query - paload data to be sent to the API server, containing specific kind of API query
+  /// - timeout - time to wait read, write & connection until timeout error, default - 3 sec
+  ApiRequest.keep({
+    required String authToken,
+    required ApiAddress address,
+    required ApiQueryType query,
+    Duration timeout = const Duration(milliseconds: 3000),
+    bool debug = false,
+  }) :
+    _authToken = authToken,
+    _address = address,
+    _query = query,
+    _timeout = timeout,
+    _keep = true,
     _debug = debug,
     _messages = Messages(address: address, timeout: timeout);
   ///
