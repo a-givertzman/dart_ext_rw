@@ -125,11 +125,10 @@ void main() {
       await FakeServer(host, port).start();
       List<Future> replies = [];
       final time = Stopwatch()..start();
-      final request = ApiRequest(
+      final request = ApiRequest.keep(
         address: ApiAddress(host: host, port: port),
         authToken: '***token***',
         query: FakeApiQueryType(valid: true, query: ''),
-        keep: true,
       );
       for (final i in Iterable.generate(3)) {
         final query = FakeApiQueryType(valid: true, query: 'Client.Request$i');

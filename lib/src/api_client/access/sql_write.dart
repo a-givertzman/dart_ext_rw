@@ -13,18 +13,17 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
   final T Function() _emptyEntryBuilder;
   final ApiRequest _request;
   ///
-  /// - Can be fetched multiple times if `keep` is `true`
+  /// Performs a request to the API server
+  /// - Can be fetched only once, closes automatically
   /// - `authToken` - authentication parameter, dipends on authentication kind
   /// - `address` - IP and port of the API server
   /// - `database` - database name
   /// - `timeout` - time to wait read, write & connection until timeout error, default - 3 sec
-  /// - `keep` - socket connection opened if `true`, default `false`
-    SqlWrite({
+  SqlWrite({
     required ApiAddress address,
     required String authToken,
     required String database,
     Duration timeout = const Duration(milliseconds: 3000),
-    bool keep = false,
     bool debug = false,
     SqlBuilder<T>? insertSqlBuilder,
     SqlBuilder<T>? updateSqlBuilder,
@@ -42,7 +41,43 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
       address: address, 
       authToken: authToken, 
       timeout: timeout,
-      keep: keep,
+      debug: debug,
+      query: SqlQuery(
+        database: database,
+        sql: '',
+      ),
+    ) {
+    _log = Log("$runtimeType");
+  }
+  ///
+  /// Performs a requests to the API server
+  /// - Can be fetched multiple times, call `close()` at the end
+  /// - `authToken` - authentication parameter, dipends on authentication kind
+  /// - `address` - IP and port of the API server
+  /// - `database` - database name
+  /// - `timeout` - time to wait read, write & connection until timeout error, default - 3 sec
+  SqlWrite.keep({
+    required ApiAddress address,
+    required String authToken,
+    required String database,
+    Duration timeout = const Duration(milliseconds: 3000),
+    bool debug = false,
+    SqlBuilder<T>? insertSqlBuilder,
+    SqlBuilder<T>? updateSqlBuilder,
+    SqlBuilder<T>? deleteSqlBuilder,
+    // required T Function(Map<String, dynamic> row) entryFromFactories,
+    required T Function() emptyEntryBuilder,
+  }) :
+    _database = database,
+    _insertSqlBuilder = insertSqlBuilder,
+    _updateSqlBuilder = updateSqlBuilder,
+    _deleteSqlBuilder = deleteSqlBuilder,
+    // _entryFromFactories = entryFromFactories,
+    _emptyEntryBuilder = emptyEntryBuilder,
+    _request = ApiRequest.keep(
+      address: address, 
+      authToken: authToken, 
+      timeout: timeout,
       debug: debug,
       query: SqlQuery(
         database: database,

@@ -21,7 +21,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 // import 'package:web_socket_channel/io.dart';
 ///
 /// Performs the request(s) to the API server
-/// - ApiRequest.keep can be fetched multiple times, call `close()` at the end
+/// - `ApiRequest.keep` can be fetched multiple times, call `close()` at the end
 class ApiRequest {
   static final _log = const Log('ApiRequest');
   final ApiAddress _address;

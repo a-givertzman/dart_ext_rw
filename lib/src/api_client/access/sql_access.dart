@@ -4,9 +4,7 @@ import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 ///
 /// Performs a request(s) to the API server
-/// - Can be fetched multiple times if `keep` is true
-/// - Keeps socket connection opened if `query` has `keep` = true
-/// - Call close if `keep` is true to close the connection
+/// - `SqlAccess.keep` can be fetched multiple times, call `close()` at the end
 class SqlAccess<T, P> {
   late final Log _log;
   final String _database;
@@ -15,18 +13,17 @@ class SqlAccess<T, P> {
   final ApiRequest _request;
   Sql _sql = Sql(sql: '');
   ///
-  /// - Can be fetched multiple times if `keep` is `true`
+  /// Performs a request to the API server
+  /// - Can be fetched only once, closes automatically
   /// - `authToken` - authentication parameter, dipends on authentication kind
   /// - `address` - IP and port of the API server
   /// - `database` - database name
   /// - `timeout` - time to wait read, write & connection until timeout error, default - 3 sec
-  /// - `keep` - socket connection opened if `true`, default `false`
-    SqlAccess({
+  SqlAccess({
     required ApiAddress address,
     required String authToken,
     required String database,
     Duration timeout = const Duration(milliseconds: 3000),
-    bool keep = false,
     bool debug = false,
     required SqlBuilder<P?> sqlBuilder,
     T Function(Map<String, dynamic> row)? entryBuilder,
@@ -38,7 +35,37 @@ class SqlAccess<T, P> {
       address: address, 
       authToken: authToken, 
       timeout: timeout,
-      keep: keep,
+      debug: debug,
+      query: SqlQuery(
+        database: database,
+        sql: '',
+      ),
+    ) {
+    _log = Log("$runtimeType");
+  }
+  ///
+  /// Performs a requests to the API server
+  /// - Can be fetched multiple times, , call `close()` at the end
+  /// - `authToken` - authentication parameter, dipends on authentication kind
+  /// - `address` - IP and port of the API server
+  /// - `database` - database name
+  /// - `timeout` - time to wait read, write & connection until timeout error, default - 3 sec
+  SqlAccess.keep({
+    required ApiAddress address,
+    required String authToken,
+    required String database,
+    Duration timeout = const Duration(milliseconds: 3000),
+    bool debug = false,
+    required SqlBuilder<P?> sqlBuilder,
+    T Function(Map<String, dynamic> row)? entryBuilder,
+  }) :
+    _database = database,
+    _sqlBuilder = sqlBuilder,
+    _entryBuilder = entryBuilder,
+    _request = ApiRequest.keep(
+      address: address, 
+      authToken: authToken, 
+      timeout: timeout,
       debug: debug,
       query: SqlQuery(
         database: database,
