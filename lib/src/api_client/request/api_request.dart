@@ -34,6 +34,7 @@ class ApiRequest {
   int _id = 0;
   ///
   /// Single request to the API server
+  /// - Can be fetched only once
   /// - authToken - authentication parameter, dipends on authentication kind
   /// - address - IP and port of the API server
   /// - query - paload data to be sent to the API server, containing specific kind of API query
@@ -54,7 +55,8 @@ class ApiRequest {
     _messages = Messages(address: address, timeout: timeout);
   ///
   /// Multiple requests to the API server
-  /// - Must be closed by calling `close()`
+  /// - Can be fetched multiple times
+  /// - Must be closed by calling `close()` at the end
   /// - authToken - authentication parameter, dipends on authentication kind
   /// - address - IP and port of the API server
   /// - query - paload data to be sent to the API server, containing specific kind of API query
