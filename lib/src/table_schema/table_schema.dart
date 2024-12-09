@@ -41,7 +41,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   //
   //
   @override
-  List<T> get entries => _entries.values.toList();
+  Map<String, T> get entries => _entries;
   ///
   /// Fetchs data with new sql built from [values]
   @override
