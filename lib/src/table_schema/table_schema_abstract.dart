@@ -14,7 +14,7 @@ abstract interface class TableSchemaAbstract<T extends SchemaEntryAbstract, P> i
   List<String> get keys;
   ///
   /// Returns table row's data
-  List<T> get entries;
+  Map<String, T> get entries;
   ///
   /// Fetchs data with new sql built from [values]
   @override
