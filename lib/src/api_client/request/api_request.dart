@@ -17,6 +17,7 @@ import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hmi_core/hmi_core_result.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 // import 'package:web_socket_channel/web_socket_channel.dart';
 // import 'package:web_socket_channel/io.dart';
 ///
@@ -84,6 +85,7 @@ class ApiRequest {
   Future<Result<ApiReply, Failure>> fetch() async {
     final queryJson = _query.buildJson(authToken: _authToken, debug: _debug, keep: _keep);
     final bytes = utf8.encode(queryJson);
+    _log.info('.fetch | platform: ${kIsWeb ? 'Web' : 'NonWeb'}');
     if (kIsWeb) {
       return _fetchWebSocket(bytes);
     } else {
@@ -96,6 +98,7 @@ class ApiRequest {
   Future<Result<ApiReply, Failure>> fetchWith(ApiQueryType query) async {
     final queryJson = query.buildJson(authToken: _authToken, debug: _debug, keep: _keep);
     final bytes = utf8.encode(queryJson);
+    _log.info('.fetchWith | platform: ${kIsWeb ? 'Web' : 'NonWeb'}');
     if (kIsWeb) {
       return _fetchWebSocket(bytes);
     } else {
@@ -118,45 +121,49 @@ class ApiRequest {
   }
   ///
   /// Fetching on web socket
-  Future<Result<ApiReply, Failure>> _fetchWebSocket(Bytes bytes) {
-    return WebSocket.connect('ws://${_address.host}:${_address.port}')
-      .then((wSocket) async {
-        return _sendWeb(wSocket, bytes)
-          .then((result) {
-            return switch(result) {
-              Ok() => _readWeb(wSocket)
-                .then((result) {
-                  final Result<ApiReply, Failure> r = switch(result) {
-                    Ok(:final value) => Ok(
-                      ApiReply.fromJson(
-                        utf8.decode(value),
-                      ),
+  Future<Result<ApiReply, Failure>> _fetchWebSocket(Bytes bytes) async {
+    return Future.microtask(() async {
+      final wSocket = WebSocketChannel.connect(Uri.parse('wss://${_address.host}:${_address.port}'));
+      _log.warning('._fetchWebSocket | wSocket connecting to ${_address.host}:${_address.port}...');
+      try {
+        await wSocket.ready;
+      } on SocketException catch (err) {
+        _log.warning('._fetchWebSocket | wSocket connection error $err');
+        return Err(Failure(message: 'ApiRequest._fetchWebSocket | Connection error $err', stackTrace: StackTrace.current));
+      } on WebSocketChannelException catch (err) {
+        _log.warning('._fetchWebSocket | wSocket connection error $err');
+        return Err(Failure(message: 'ApiRequest._fetchWebSocket | Connection error $err', stackTrace: StackTrace.current));
+      }
+      _log.warning('._fetchWebSocket | wSocket connected to: ${wSocket}');
+      return _sendWeb(wSocket, bytes)
+        .then((result) {
+          return switch(result) {
+            Ok() => _readWeb(wSocket)
+              .then((result) {
+                final Result<ApiReply, Failure> r = switch(result) {
+                  Ok(:final value) => Ok(
+                    ApiReply.fromJson(
+                      utf8.decode(value),
                     ),
-                    Err(:final error) => Err(error),
-                  };
-                  return r;
-                }), 
-              Err(:final error) => Future<Result<ApiReply, Failure>>.value(
-                  Err(error),
-                ),
-            };
-          });
-      })
-      .catchError((error) {
-          return Err<ApiReply, Failure>(
-            Failure(
-              message: '.fetch | web socket error: $error', 
-              stackTrace: StackTrace.current,
-            ),
-          );
-      });
+                  ),
+                  Err(:final error) => Err(error),
+                };
+                return r;
+              }), 
+            Err(:final error) => Future<Result<ApiReply, Failure>>.value(
+                Err(error),
+              ),
+          };
+        });
+
+    });
   }
   ///
   /// Reads bytes from web socket
-  Future<Result<List<int>, Failure>> _readWeb(WebSocket socket) async {
+  Future<Result<List<int>, Failure>> _readWeb(WebSocketChannel socket) async {
     try {
       List<int> message = [];
-      final subscription = socket
+      final subscription = socket.stream
         .timeout(
           _timeout,
           onTimeout: (sink) {
@@ -183,16 +190,19 @@ class ApiRequest {
   }
   ///
   /// Sends bytes over WEB socket
-  Future<Result<bool, Failure>> _sendWeb(WebSocket socket, Bytes bytes) async {
-    final message = MessageBuild(
-      syn: FieldSyn.def(),
-      id: FieldId.def(),
-      kind: FieldKind.bytes,
-      size: FieldSize.def(),
-      data: FieldData([]),
-    );
+  Future<Result<bool, Failure>> _sendWeb(WebSocketChannel socket, Bytes bytes) async {
+    // final message = MessageBuild(
+    //   syn: FieldSyn.def(),
+    //   id: FieldId.def(),
+    //   kind: FieldKind.bytes,
+    //   size: FieldSize.def(),
+    //   data: FieldData([]),
+    // );
     try {
-      socket.add(message.build(bytes));
+      _id++;
+      // final msgBytes = message.build(bytes, id: _id);
+      // _log.info('._send | Web socket bytes: ${msgBytes.sublist(0, 16)}');
+      socket.sink.add(bytes);
       return Future.value(const Ok(true));
     } catch (error) {
       _log.warning('._send | Web socket error: $error');
@@ -206,10 +216,9 @@ class ApiRequest {
   }
   ///
   /// Closes web socket
-  Future<void> _closeSocketWeb(WebSocket? socket) async {
+  Future<void> _closeSocketWeb(WebSocketChannel? socket) async {
     try {
-      socket?.close();
-      // socket?.destroy();
+      socket?.sink.close();
     } catch (error) {
       _log.warning('[.close] error: $error');
     }
