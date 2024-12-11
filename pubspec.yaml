@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
   logging: ^1.3.0
   hmi_core:
+    # path: ../hmi_core
     git:
       url: https://github.com/a-givertzman/hmi_core.git
       ref: 2.1.2
