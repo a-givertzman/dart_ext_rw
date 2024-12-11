@@ -124,17 +124,17 @@ class ApiRequest {
   Future<Result<ApiReply, Failure>> _fetchWebSocket(Bytes bytes) async {
     return Future.microtask(() async {
       final wSocket = WebSocketChannel.connect(Uri.parse('wss://${_address.host}:${_address.port}'));
-      _log.warning('._fetchWebSocket | wSocket connecting to ${_address.host}:${_address.port}...');
+      _log.warn('._fetchWebSocket | wSocket connecting to ${_address.host}:${_address.port}...');
       try {
         await wSocket.ready;
       } on SocketException catch (err) {
-        _log.warning('._fetchWebSocket | wSocket connection error $err');
+        _log.warn('._fetchWebSocket | wSocket connection error $err');
         return Err(Failure(message: 'ApiRequest._fetchWebSocket | Connection error $err', stackTrace: StackTrace.current));
       } on WebSocketChannelException catch (err) {
-        _log.warning('._fetchWebSocket | wSocket connection error $err');
+        _log.warn('._fetchWebSocket | wSocket connection error $err');
         return Err(Failure(message: 'ApiRequest._fetchWebSocket | Connection error $err', stackTrace: StackTrace.current));
       }
-      _log.warning('._fetchWebSocket | wSocket connected to: ${wSocket}');
+      _log.warn('._fetchWebSocket | wSocket connected to: ${wSocket}');
       return _sendWeb(wSocket, bytes)
         .then((result) {
           return switch(result) {
@@ -178,7 +178,7 @@ class ApiRequest {
       _closeSocketWeb(socket);
       return Ok(message);
     } catch (error) {
-      _log.warning('._read | socket error: $error');
+      _log.warn('._read | socket error: $error');
       await _closeSocketWeb(socket);
       return Err(
         Failure.connection(
@@ -205,7 +205,7 @@ class ApiRequest {
       socket.sink.add(bytes);
       return Future.value(const Ok(true));
     } catch (error) {
-      _log.warning('._send | Web socket error: $error');
+      _log.warn('._send | Web socket error: $error');
       return Err(
         Failure.connection(
           message: '._send | Web socket error: $error', 
@@ -220,7 +220,7 @@ class ApiRequest {
     try {
       socket?.sink.close();
     } catch (error) {
-      _log.warning('[.close] error: $error');
+      _log.warn('[.close] error: $error');
     }
   }
   ///
