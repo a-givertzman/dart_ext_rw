@@ -15,7 +15,7 @@ dependencies:
     # path: ../hmi_core
     git:
       url: https://github.com/a-givertzman/hmi_core.git
-      ref: 2.1.2
+      ref: 2.1.4
   uuid: ^4.5.1
   web_socket_channel: ^3.0.1
 
