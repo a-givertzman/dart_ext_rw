@@ -25,7 +25,7 @@ class TableSchemaFiltered<T extends SchemaEntryAbstract, P> implements TableSche
   ///
   /// Returns a list of table field names
   @override
-  List<Field> get fields {
+  List<Field<T>> get fields {
     return _schema.fields;
   }
   ///
@@ -100,17 +100,12 @@ class TableSchemaFiltered<T extends SchemaEntryAbstract, P> implements TableSche
   //
   //
   @override
-  Map<String, List<SchemaEntryAbstract>> get relations {
-    return {};
-  }
+  Map<String, List<SchemaEntryAbstract>> get relations => _schema.relations;
   //
   //
   @override
-  Result<TableSchemaFiltered<SchemaEntry, dynamic>, Failure> relation(String id) {
-    return Err(Failure(
-        message: '$runtimeType.relation | method does not exists', 
-        stackTrace: StackTrace.current,
-    ));
+  Result<TableSchemaAbstract<SchemaEntryAbstract, dynamic>, Failure> relation(String id) {
+    return _schema.relation(id);
   }
   //
   //

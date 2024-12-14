@@ -25,7 +25,7 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
   ///
   /// Returns a list of table field names
   @override
-  List<Field> get fields {
+  List<Field<T>> get fields {
     return _schema.fields;
   }
   ///
