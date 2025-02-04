@@ -1,11 +1,11 @@
 name: ext_rw
 description: API tools on client side for Dart / Flutter application
-version: 1.2.1
+version: 1.2.2
 homepage: https://github.com/a-givertzman/dart_ext_rw
 publish_to: none
 
 environment:
-  sdk: '>=3.1.5 <4.0.0'
+  sdk: ">=3.1.5 <4.0.0"
 
 dependencies:
   flutter:
@@ -36,7 +36,7 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   # assets:
-    # - assets/test/
+  # - assets/test/
   # To add assets to your package, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
