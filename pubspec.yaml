@@ -1,6 +1,6 @@
 name: ext_rw
 description: API tools on client side for Dart / Flutter application
-version: 1.2.2
+version: 1.2.3
 homepage: https://github.com/a-givertzman/dart_ext_rw
 publish_to: none
 
@@ -15,7 +15,7 @@ dependencies:
     # path: ../hmi_core
     git:
       url: https://github.com/a-givertzman/hmi_core.git
-      ref: 2.1.4
+      ref: 2.1.5
   uuid: ^4.5.1
   web_socket_channel: ^3.0.1
 
