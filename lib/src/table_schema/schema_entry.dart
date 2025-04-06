@@ -10,10 +10,10 @@ class SchemaEntry implements SchemaEntryAbstract {
   final _log = Log("$SchemaEntry");
   final _id = const Uuid().v1();  // v1 time-based id
   final Map<String, FieldValue> _map;
+  final List<Function(bool isSelected)?> _onSelectionChanged = [];
   bool _isEmpty;
   bool _isChanged =  false;
   bool _isSelected = false;
-  Function(bool isSelected)? _onSelectionChanged;
   ///
   ///
   SchemaEntry({
@@ -108,14 +108,16 @@ class SchemaEntry implements SchemaEntryAbstract {
   void select(bool selected) {
     if (_isSelected != selected) {
       _isSelected = selected;
-      _onSelectionChanged?.call(_isSelected);
+      for (final Function(bool isSelected)? onSelectionChanged in _onSelectionChanged) {
+        onSelectionChanged?.call(_isSelected);
+      }
     }
   }
   //
   //
   @override
   void selectionChanged(Function(bool isSelected) onChanged) {
-    _onSelectionChanged = onChanged;
+    _onSelectionChanged.add(onChanged);
   }
   ///
   /// Set isChanged to false

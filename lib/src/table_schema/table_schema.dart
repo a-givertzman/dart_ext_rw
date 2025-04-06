@@ -24,7 +24,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
     _fields = fields,
     _read = read,
     _write = write {
-      _log = Log("$runtimeType")..level = LogLevel.debug;
+      _log = Log("$runtimeType")..level = LogLevel.info;
     }
   ///
   /// Returns a list of table field names
@@ -47,7 +47,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   /// ather selections will be resetted
   void _entrySelectionChanged(String keyOfSelected, bool isSelected) {
     if (isSelected) {
-      _log.debug('._entrySelectionChanged | Selected: $keyOfSelected');
+      _log.trace('._entrySelectionChanged | Selected: $keyOfSelected');
       _entries.forEach((key, entry) {
         if (key != keyOfSelected && entry.isSelected) {
           entry.select(false);
