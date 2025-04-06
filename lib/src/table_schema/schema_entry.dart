@@ -13,6 +13,7 @@ class SchemaEntry implements SchemaEntryAbstract {
   bool _isEmpty;
   bool _isChanged =  false;
   bool _isSelected = false;
+  Function(bool isSelected)? _onSelectionChanged;
   ///
   ///
   SchemaEntry({
@@ -105,7 +106,14 @@ class SchemaEntry implements SchemaEntryAbstract {
   /// Set selection state
   @override
   void select(bool selected) {
-    if (_isSelected != selected) _isSelected = selected;
+    if (_isSelected != selected) {
+      _isSelected = selected;
+      _onSelectionChanged?.call(_isSelected);
+    }
+  }
+  @override
+  void selectionChanged(Function(bool isSelected) onChanged) {
+    _onSelectionChanged = onChanged;
   }
   ///
   /// Set isChanged to false

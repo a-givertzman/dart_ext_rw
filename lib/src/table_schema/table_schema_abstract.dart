@@ -20,10 +20,10 @@ abstract interface class TableSchemaAbstract<T extends SchemaEntryAbstract, P> i
   @override
   Future<Result<List<T>, Failure>> fetch(P? params);
   ///
-  /// Returns relations as Map<String, List<SchemaEntryAbstract>>
+  /// Returns relations as `Map<String, List<SchemaEntryAbstract>>`
   Map<String, List<SchemaEntryAbstract>> get relations;
   ///
-  /// Returns relation Result<schema> if exists else Result<Failure>
+  /// Returns relation `Result<schema>` if exists else `Result<Failure>`
   Result<TableSchemaAbstract, Failure> relation(String id);
   ///
   /// Inserts new entry into the table schema
