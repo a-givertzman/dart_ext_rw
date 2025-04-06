@@ -43,6 +43,18 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   @override
   Map<String, T> get entries => _entries;
   ///
+  /// Invoked from entry when it selection has been changed
+  /// ather selections will be resetted
+  void _entrySelectionChanged(String keyOfSelected, bool isSelected) {
+    if (isSelected) {
+      _entries.forEach((key, entry) {
+        if (key != keyOfSelected && entry.isSelected) {
+          entry.select(false);
+        }
+      });
+    }
+  }
+  ///
   /// Fetchs data with new sql built from [values]
   @override
   Future<Result<List<T>, Failure>> fetch(P? params) async {
@@ -61,6 +73,9 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
                   stackTrace: StackTrace.current,
                 ));
               }
+              entry.selectionChanged((bool isSelected) {
+                _entrySelectionChanged(entry.key, isSelected);
+              });
               _entries[entry.key] = entry;
             } 
             return Ok<List<T>, Failure>(_entries.values.toList());
