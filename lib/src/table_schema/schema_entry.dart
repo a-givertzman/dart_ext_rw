@@ -111,6 +111,8 @@ class SchemaEntry implements SchemaEntryAbstract {
       _onSelectionChanged?.call(_isSelected);
     }
   }
+  //
+  //
   @override
   void selectionChanged(Function(bool isSelected) onChanged) {
     _onSelectionChanged = onChanged;
