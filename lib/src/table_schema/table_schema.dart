@@ -24,7 +24,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
     _fields = fields,
     _read = read,
     _write = write {
-      _log = Log("$runtimeType")..level = LogLevel.info;
+      _log = Log("$runtimeType")..level = LogLevel.debug;
     }
   ///
   /// Returns a list of table field names
@@ -47,6 +47,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   /// ather selections will be resetted
   void _entrySelectionChanged(String keyOfSelected, bool isSelected) {
     if (isSelected) {
+      _log.debug('._entrySelectionChanged | Selected: $keyOfSelected');
       _entries.forEach((key, entry) {
         if (key != keyOfSelected && entry.isSelected) {
           entry.select(false);
@@ -103,6 +104,9 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
       return switch (result) {
         Ok(:final value) => () {
           final entry_ = value;
+          entry_.selectionChanged((bool isSelected) {
+            _entrySelectionChanged(entry_.key, isSelected);
+          });
           _entries[entry_.key] = entry_;
           return const Ok<void, Failure>(null);
         }(),
@@ -117,6 +121,9 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
     return _write.update(entry).then((result) {
       if (result is Ok) {
         entry.saved();
+          entry.selectionChanged((bool isSelected) {
+            _entrySelectionChanged(entry.key, isSelected);
+          });
         _entries[entry.key] = entry;
       }
       return result;
