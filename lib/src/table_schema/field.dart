@@ -12,6 +12,7 @@ class Field<T extends SchemaEntryAbstract> {
   final bool _edit;
   final Relation _relation;
   final Widget Function(BuildContext, T)? _builder;
+  final int _flex;
   ///
   /// **Represents table column settings**
   /// - [title] - display name of the column, if null, the [key] will be displayed
@@ -27,13 +28,15 @@ class Field<T extends SchemaEntryAbstract> {
     bool editable = false,
     Relation? relation,
     Widget Function(BuildContext, T)? builder,
+    int flex = 1,
   }) :
     _key = key,
     _title = title ?? key,
     _hidden = hidden,
     _edit = editable,
     _relation = relation ?? const Relation.empty(),
-    _builder = builder;
+    _builder = builder,
+    _flex = flex;
   ///
   /// Returns [key] of [Field]
   ///   - database column name if not relation
@@ -55,10 +58,13 @@ class Field<T extends SchemaEntryAbstract> {
   /// Returns cell widget build from specified [builder],  
   /// Or by default retirns Text(value)
   Widget Function(BuildContext context, T entry)? get builder => _builder;
+  ///
+  /// Returns flex value of current field
+  int get flex => _flex;
   //
   //
   @override
   String toString() {
-    return '$runtimeType{ key: $_key, title: $_title, hidden: $_hidden, editable: $_edit, relation: $_relation }';
+    return '$runtimeType{ key: $_key, title: $_title, hidden: $_hidden, editable: $_edit, relation: $_relation, flex: $_flex }';
   }
 }
