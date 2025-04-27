@@ -101,19 +101,19 @@ class SqlAccess<T, P> {
               final List<T> entries = [];
               final rows = reply.data;
               final rowsLength = rows.length;
-              _log.debug("._fetch | reply rows ($rowsLength): $rows");
+              _log.trace("._fetch | reply rows ($rowsLength): $rows");
               for (final row in rows) {
-                _log.debug("._fetch | row: $row");
+                _log.trace("._fetch | row: $row");
                 final entry = entryBuilder(row);
-                _log.debug("._fetch | entry: $entry");
+                _log.trace("._fetch | entry: $entry");
                 entries.add(entry);
               }
-              _log.debug("._fetch | entries: $entries");
+              _log.trace("._fetch | entries: $entries");
               return Ok<List<T>, Failure>(entries);
             }
           }(), 
           Err(:final error) => () {
-            _log.debug("._fetch | error: $error");
+            _log.warn("._fetch | error: $error");
             return Err<List<T>, Failure>(error);
           }(),
         };
