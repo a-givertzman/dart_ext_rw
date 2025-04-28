@@ -15,7 +15,7 @@ class FieldValue<T> {
   T get value => _value;
   ///
   /// Returns a string representation of the inner value
-  String? get str {
+  String get str {
     if (_value == null || '$_value'.toLowerCase() == 'null') {
       return 'null';
     }
