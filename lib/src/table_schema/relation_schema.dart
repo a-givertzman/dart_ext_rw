@@ -51,7 +51,6 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
       _schema.fetch(params).then((result) {
         schemaFetchResult = result;
         if (_controller.hasListener) _controller.add(result);
-        return result;
       }),
     ]);
     return schemaFetchResult;
