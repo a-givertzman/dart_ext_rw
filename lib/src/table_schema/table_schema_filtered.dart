@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ext_rw/ext_rw.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
@@ -10,6 +12,7 @@ class TableSchemaFiltered<T extends SchemaEntryAbstract, P> implements TableSche
   late final Log _log;
   final TableSchemaAbstract<T, P> _schema;
   final bool Function(T) _filter;
+  final StreamController<Result<List<T>, Failure>> _controller = StreamController.broadcast();
   ///
   /// A collection of the SchameEntry, 
   /// abstruction on the SQL table rows
@@ -51,6 +54,7 @@ class TableSchemaFiltered<T extends SchemaEntryAbstract, P> implements TableSche
     _log.warning('.fetch | ...');
     return _schema.fetch(params).then(
       (result) {
+        if (_controller.hasListener) _controller.add(result);
         switch (result) {
           case Ok<List<T>, Failure>(value: final entries):
             final result = entries.where((entry) => _filter(entry)).toList();
@@ -62,11 +66,19 @@ class TableSchemaFiltered<T extends SchemaEntryAbstract, P> implements TableSche
         }
       },
       onError: (err) {
-        return Err<List<T>, Failure>(
+        final result = Err<List<T>, Failure>(
           Failure(message: "$runtimeType.fetch | Error: $err", stackTrace: StackTrace.current),
         );
+        if (_controller.hasListener) _controller.add(result);
+        return result;
       },
     );
+  }
+  //
+  //
+  @override
+  Stream<Result<List<T>, Failure>> get stream {
+    return _controller.stream;
   }
   ///
   /// Inserts new entry into the table schema
@@ -111,6 +123,9 @@ class TableSchemaFiltered<T extends SchemaEntryAbstract, P> implements TableSche
   //
   @override
   Future<void> close() {
-    return _schema.close();
+    return Future.wait([
+      _controller.close(),
+      _schema.close(),
+    ]);
   }
 }
