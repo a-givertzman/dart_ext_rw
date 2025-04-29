@@ -20,15 +20,15 @@ class Relation {
     _field = '',
     _isEmpty = true;
   ///
-  ///
+  /// Where from get the data
   String get id => _id;
   ///
-  ///
+  /// Name of field to be presented from data
   String get field => _field;
   ///
-  ///
+  /// Returns true if [Relation] was created empty
   bool get isEmpty => _isEmpty;
   ///
-  ///
+  /// Returns true if [Relation] was created not empty
   bool get isNotEmpty => !_isEmpty;
 }

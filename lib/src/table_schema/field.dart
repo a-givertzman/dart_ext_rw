@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 class Field<T extends SchemaEntryAbstract> {
   final String _key;
   final String _title;
+  final String _hint;
   final bool _hidden;
   final bool _edit;
   final Relation _relation;
@@ -16,6 +17,7 @@ class Field<T extends SchemaEntryAbstract> {
   ///
   /// **Represents table column settings**
   /// - [title] - display name of the column, if null, the [key] will be displayed
+  /// - [hint] - Hint / tooltip of the column
   /// - [key] 
   ///   - database column name if not relation
   ///   - relation key if this is relation column
@@ -24,6 +26,7 @@ class Field<T extends SchemaEntryAbstract> {
   const Field({
     required String key,
     String? title,
+    String? hint,
     bool hidden = false,
     bool editable = false,
     Relation? relation,
@@ -32,6 +35,7 @@ class Field<T extends SchemaEntryAbstract> {
   }) :
     _key = key,
     _title = title ?? key,
+    _hint = hint ?? title ?? key,
     _hidden = hidden,
     _edit = editable,
     _relation = relation ?? const Relation.empty(),
@@ -45,6 +49,9 @@ class Field<T extends SchemaEntryAbstract> {
   ///
   /// Display name of [Field] if not specified, [key] will be displayed
   String get title => _title;
+  ///
+  /// Hint of [Field] if not specified, [title] will be displayed
+  String get hint => _hint;
   ///
   /// Column will not be displayed if `true`
   bool get isHidden => _hidden;
