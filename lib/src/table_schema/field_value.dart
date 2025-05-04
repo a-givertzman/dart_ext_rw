@@ -57,6 +57,7 @@ class FieldValue<T> {
       _isChanged = true;
       if (value == null) {
         _value = value;
+        return true;
       } else {
         switch (type) {
           case FieldType.bool:
