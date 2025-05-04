@@ -55,25 +55,29 @@ class FieldValue<T> {
   bool update(T value) {
     if (_value != value) {
       _isChanged = true;
-      switch (type) {
-        case FieldType.bool:
-          // TODO Add type convertion
-          _value = value;
-          return true;
-        case FieldType.int:
-          // TODO Add type convertion
-          _value = value;
-          return true;
-        case FieldType.double:
-          // TODO Add type convertion
-          _value = value;
-          return true;
-        case FieldType.string:
-          _value = '$value' as T;
-          return true;
-        case FieldType.unknown:
-          _value = value;
-          return true;
+      if (value == null) {
+        _value = value;
+      } else {
+        switch (type) {
+          case FieldType.bool:
+            // TODO Add type convertion
+            _value = value;
+            return true;
+          case FieldType.int:
+            // TODO Add type convertion
+            _value = value;
+            return true;
+          case FieldType.double:
+            // TODO Add type convertion
+            _value = value;
+            return true;
+          case FieldType.string:
+            _value = '$value' as T;
+            return true;
+          case FieldType.unknown:
+            _value = value;
+            return true;
+        }
       }
     }
     return false;
