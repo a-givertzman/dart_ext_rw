@@ -114,7 +114,7 @@ class ApiRequest {
     );
   }
   ///
-  /// Fetching on web socket
+  /// Fetching on the web socket
   Future<Result<ApiReply, Failure>> _fetchWebSocket(Bytes bytes) async {
     return Future.microtask(() async {
       final wSocket = WebSocketChannel.connect(Uri.parse('wss://${_address.host}:${_address.port}'));
