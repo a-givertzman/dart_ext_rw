@@ -128,7 +128,7 @@ class ApiRequest {
         _log.warn('._fetchWebSocket | wSocket connection error $err');
         return Err(Failure(message: 'ApiRequest._fetchWebSocket | Connection error $err', stackTrace: StackTrace.current));
       }
-      _log.warn('._fetchWebSocket | wSocket connected to: ${wSocket}');
+      _log.warn('._fetchWebSocket | wSocket connected to: $wSocket');
       return _sendWeb(wSocket, bytes)
         .then((result) {
           return switch(result) {
