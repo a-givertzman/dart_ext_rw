@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ext_rw/ext_rw.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
@@ -10,6 +12,7 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
   late final Log _log;
   final TableSchemaAbstract<T, P> _schema;
   final Map<String, TableSchemaAbstract> _relations;
+  final StreamController<Result<List<T>, Failure>> _controller = StreamController.broadcast();
   ///
   /// A collection of the SchameEntry, 
   /// abstruction on the SQL table rows
@@ -20,12 +23,12 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
   }) :
     _schema = schema,
     _relations = relations {
-      _log = Log("$runtimeType");
+      _log = Log('$runtimeType');
     }
   ///
   /// Returns a list of table field names
   @override
-  List<Field> get fields {
+  List<Field<T>> get fields {
     return _schema.fields;
   }
   ///
@@ -37,19 +40,34 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
   //
   //
   @override
-  List<T> get entries => _schema.entries;
+  Map<String, T> get entries => _schema.entries;
   ///
   /// Fetchs data with new sql built from [values]
   @override
   Future<Result<List<T>, Failure>> fetch(params) async {
-    await fetchRelations();
-    return _schema.fetch(params);
+    Result<List<T>, Failure> schemaFetchResult = Err(Failure(message: '$runtimeType.fetch | Just initialized only', stackTrace: StackTrace.current));
+    await Future.wait([
+      fetchRelations(),
+      _schema.fetch(params).then((result) {
+        schemaFetchResult = result;
+        if (_controller.hasListener) _controller.add(result);
+      }),
+    ]);
+    return schemaFetchResult;
   }
+  //
+  //
+  @override
+  Stream<Result<List<T>, Failure>> get stream {
+    return _controller.stream;
+  }
+  //
+  //
   @override
   Map<String, List<SchemaEntryAbstract>> get relations {
     return _relations.map((key, scheme) {
       final entries = scheme.entries;
-      return MapEntry(key, entries);
+      return MapEntry(key, entries.values.toList());
     });
   }
   //
@@ -111,6 +129,7 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
   @override
   Future<void> close() {
     return Future.wait([
+      _controller.close(),
       _schema.close(),
       ..._relations.values.map((schema) {
         return schema.close();

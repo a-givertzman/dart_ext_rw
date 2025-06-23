@@ -7,7 +7,7 @@ abstract interface class SchemaEntryAbstract {
   /// Returns inner unique identificator of the entry, not related to the database table
   String get key;
   ///
-  ///
+  /// Returns true if any field of entry was changed
   bool get isChanged;
   ///
   /// Returns selection state
@@ -24,6 +24,9 @@ abstract interface class SchemaEntryAbstract {
   ///
   /// Set selection state
   void select(bool selected);
+  ///
+  /// Subscribe on selection changed
+  void selectionChanged(Function(bool isSelected) onChanged);
   ///
   /// Set isChanged to false
   void saved();

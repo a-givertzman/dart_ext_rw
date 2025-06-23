@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ext_rw/ext_rw.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
@@ -8,16 +10,17 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// abstruction on the SQL table rows
 class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstract<T, P> {
   late final Log _log;
-  final List<Field> _fields;
+  final List<Field<T>> _fields;
   final Map<String, T> _entries = {};
   final SchemaRead<T, P> _read;
   final SchemaWrite<T> _write;
+  final StreamController<Result<List<T>, Failure>> _controller = StreamController.broadcast();
   ///
   /// A collection of the SchameEntry, 
   /// abstruction on the SQL table rows
   /// - [keys] - list of table field names
   TableSchema({
-    required List<Field> fields,
+    required List<Field<T>> fields,
     SchemaRead<T, P> read = const SchemaRead.empty(),
     SchemaWrite<T> write = const SchemaWrite.empty(),
   }) :
@@ -29,7 +32,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   ///
   /// Returns a list of table field names
   @override
-  List<Field> get fields {
+  List<Field<T>> get fields {
     return _fields;
   }
   ///
@@ -41,7 +44,20 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   //
   //
   @override
-  List<T> get entries => _entries.values.toList();
+  Map<String, T> get entries => _entries;
+  ///
+  /// Invoked from entry when it selection has been changed
+  /// ather selections will be resetted
+  void _entrySelectionChanged(String keyOfSelected, bool isSelected) {
+    if (isSelected) {
+      _log.trace('._entrySelectionChanged | Selected: $keyOfSelected');
+      _entries.forEach((key, entry) {
+        if (key != keyOfSelected && entry.isSelected) {
+          entry.select(false);
+        }
+      });
+    }
+  }
   ///
   /// Fetchs data with new sql built from [values]
   @override
@@ -49,6 +65,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
     return _read.fetch(params: params).then(
       (result) {
         _log.debug('.fetch | result: $result');
+        if (_controller.hasListener) _controller.add(result);
         return switch(result) {
           Ok<List<T>, Failure>(value: final entries) => () {
             _log.debug('.fetch | result rows: $entries');
@@ -61,6 +78,9 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
                   stackTrace: StackTrace.current,
                 ));
               }
+              entry.selectionChanged((bool isSelected) {
+                _entrySelectionChanged(entry.key, isSelected);
+              });
               _entries[entry.key] = entry;
             } 
             return Ok<List<T>, Failure>(_entries.values.toList());
@@ -71,14 +91,22 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
         };
       },
       onError: (err) {
-        return Err<List<T>, Failure>(
+        final result = Err<List<T>, Failure>(
           Failure(
               message: "$runtimeType.fetch | Error: $err", 
               stackTrace: StackTrace.current,
             ),
         );
+        if (_controller.hasListener) _controller.add(result);
+        return result;
       },
     );
+  }
+  //
+  //
+  @override
+  Stream<Result<List<T>, Failure>> get stream {
+    return _controller.stream;
   }
   ///
   /// Inserts new entry into the table schema
@@ -88,6 +116,9 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
       return switch (result) {
         Ok(:final value) => () {
           final entry_ = value;
+          entry_.selectionChanged((bool isSelected) {
+            _entrySelectionChanged(entry_.key, isSelected);
+          });
           _entries[entry_.key] = entry_;
           return const Ok<void, Failure>(null);
         }(),
@@ -102,6 +133,9 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
     return _write.update(entry).then((result) {
       if (result is Ok) {
         entry.saved();
+          entry.selectionChanged((bool isSelected) {
+            _entrySelectionChanged(entry.key, isSelected);
+          });
         _entries[entry.key] = entry;
       }
       return result;
@@ -150,6 +184,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   @override
   Future<void> close() {
     return Future.wait([
+      _controller.close(),
       _read.close(),
       _write.close(),
     ]);
