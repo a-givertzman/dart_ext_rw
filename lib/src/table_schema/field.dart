@@ -12,7 +12,7 @@ class Field<T extends SchemaEntryAbstract> {
   final bool _hidden;
   final bool _edit;
   final Relation _relation;
-  final Widget Function(BuildContext ctx, T entry, Function(String)? onComplete)? _builder;
+  final Widget Function(BuildContext ctx, T entry, Function(String?)? onComplete)? _builder;
   final int _flex;
   ///
   /// **Represents table column settings**
@@ -30,7 +30,7 @@ class Field<T extends SchemaEntryAbstract> {
     bool hidden = false,
     bool editable = false,
     Relation? relation,
-    Widget Function(BuildContext ctx, T entry, Function(String)? onComplete)? builder,
+    Widget Function(BuildContext ctx, T entry, Function(String?)? onComplete)? builder,
     int flex = 1,
   }) :
     _key = key,
@@ -64,7 +64,7 @@ class Field<T extends SchemaEntryAbstract> {
   ///
   /// Returns cell widget build from specified [builder],  
   /// Or by default retirns Text(value)
-  Widget Function(BuildContext ctx, T entry, Function(String)? onComplete)? get builder => _builder;
+  Widget Function(BuildContext ctx, T entry, Function(String?)? onComplete)? get builder => _builder;
   ///
   /// Returns flex value of current field
   int get flex => _flex;

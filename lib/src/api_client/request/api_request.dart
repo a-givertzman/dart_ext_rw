@@ -2,16 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:ext_rw/src/api_client/message/field_id.dart';
-import 'package:ext_rw/src/api_client/message/field_data.dart';
-import 'package:ext_rw/src/api_client/message/field_kind.dart';
-import 'package:ext_rw/src/api_client/message/field_size.dart';
-import 'package:ext_rw/src/api_client/message/field_syn.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/query/api_query_type.dart';
 import 'package:ext_rw/src/api_client/address/api_address.dart';
 import 'package:ext_rw/src/api_client/reply/api_reply.dart';
-import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:ext_rw/src/api_client/request/messages.dart';
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
