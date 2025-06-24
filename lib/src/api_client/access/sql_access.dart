@@ -96,7 +96,7 @@ class SqlAccess<T, P> {
           Ok(value :final reply) => () {
             _log.debug("._fetch | reply: $reply");
             if (reply.hasError) {
-              return Err<List<T>, Failure>(Failure(message: reply.error.message, stackTrace: StackTrace.current));
+              return Err<List<T>, Failure>(Failure(message: 'Reply error: ${reply.error.message}', stackTrace: StackTrace.current));
             } else {
               final List<T> entries = [];
               final rows = reply.data;

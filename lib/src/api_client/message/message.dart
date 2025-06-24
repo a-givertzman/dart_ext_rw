@@ -40,7 +40,7 @@ import 'package:hmi_core/hmi_core_option.dart';
 ///   },
 /// );
 class Message {
-  final _log = Log('Message')..level = LogLevel.debug;
+  final _log = Log('Message');
   final StreamController<(FieldId, FieldKind, Bytes)> _controller = StreamController();
   final _AnySocket _socket;
   late StreamSubscription? _subscription;
@@ -129,7 +129,7 @@ class Message {
         _controller.close(),
       ]);
     } catch (error) {
-      _log.warning('[.close] error: $error');
+      _log.warning('.close | error: $error');
     }
 
   }
@@ -153,6 +153,7 @@ abstract class _AnySocket {
 ///
 /// Wrapping a standart socket
 class _AnySocketRaw implements _AnySocket {
+  final _log = Log('_AnySocketRaw');
   // final Socket? _socketRaw;
   // final WebSocket? _socketWeb;
   final Socket _socket;
@@ -169,6 +170,7 @@ class _AnySocketRaw implements _AnySocket {
     void Function()? onDone,
     bool? cancelOnError,
   }) {
+    _log.debug('.listen | ...');
     return _socket.listen(onData, onError: onError, onDone: onDone);
   }
   ///
@@ -187,6 +189,7 @@ class _AnySocketRaw implements _AnySocket {
 ///
 /// Wrapping a web socket
 class _AnySocketWeb implements _AnySocket {
+  final _log = Log('_AnySocketWeb');
   final WebSocket _socket;
   ///
   ///
@@ -201,8 +204,11 @@ class _AnySocketWeb implements _AnySocket {
     void Function()? onDone,
     bool? cancelOnError,
   }) {
+    _log.debug('.listen | ...');
     return _socket.listen(
-      onData as void Function(dynamic event)?,
+      (event) {
+        _log.debug('.listen | event: $event');
+      },
       onError: onError,
       onDone: onDone,
     ) as StreamSubscription<List<int>>;

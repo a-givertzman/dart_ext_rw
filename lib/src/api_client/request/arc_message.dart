@@ -54,7 +54,7 @@ class ArcMessage {
         },
         onError: (err) {
           _log.error('.listen.onError | Error: $err');
-          return err;
+          // return err;
         },
         onDone: () async {
           await Future.wait([

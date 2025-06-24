@@ -87,15 +87,16 @@ class ApiRequest {
   /// Fetching on tcp socket
   Future<Result<ApiReply, Failure>> _fetchSocket(Bytes bytes) async {
     _id++;
-    return _messages.fetch(_id, bytes, _keep).then(
-      (value) {
-        if (!_keep) {
-          _messages.close();
-        }
-        return value;
-      },
-      onError: (error) => error,
-    );
+    return _messages.fetch(_id, bytes, _keep)
+      .then(
+        (value) {
+          if (!_keep) {
+            _messages.close();
+          }
+          return value;
+        },
+        onError: (err) => Failure(message: '$runtimeType._fetchSocket| Error: $err', stackTrace: StackTrace.current),
+      );
   }
   ///
   /// Closes connection
