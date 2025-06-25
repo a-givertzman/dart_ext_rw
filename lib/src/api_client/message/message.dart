@@ -60,7 +60,7 @@ class Message {
   Message(Socket socket) :
     _socket = _AnySocketRaw(socket);
   ///
-  /// Extracting `id`, `kind` and `payload` parts from the socket stream
+  /// Extracting `id`, `kind` and `payload` parts from the web-socket stream
   Message.web(WebSocket socket) :
     _socket = _AnySocketWeb(socket);
   ///
@@ -222,18 +222,19 @@ class _AnySocketWeb implements _AnySocket {
       .map<List<int>>((event) {
         switch (event) {
           case TextDataReceived(:final text):
-            _log.debug('.listen | TextDataReceived - not supported for now \n\t$text');
+            _log.warn('.listen | TextDataReceived - not supported for now \n\t$text');
           case BinaryDataReceived(:final data):
-            _log.trace('.listen | BinaryDataReceived \n\t$data');
+            // _log.trace('.listen | BinaryDataReceived \n\t$data');
             return data;
-          case CloseReceived(:final code):
-            _log.debug('.listen | CloseReceived: $code');
+          // case CloseReceived(:final code):
+          //   _log.debug('.listen | CloseReceived: $code');
+          default:
         }
         return [];
       })
       .listen(
         (event) {
-          _log.trace('.listen | event: $event');
+          // _log.trace('.listen | event: $event');
           onData?.call(event);
         },
         onError: onError,
@@ -245,7 +246,6 @@ class _AnySocketWeb implements _AnySocket {
   @override
   void add(data) {
     return _socket.sendBytes(Uint8List.fromList(data));
-    // return _socket.add(data);
   }
   ///
   ///
