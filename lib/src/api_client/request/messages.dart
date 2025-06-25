@@ -6,10 +6,12 @@ import 'package:ext_rw/src/api_client/message/message.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/reply/api_reply.dart';
 import 'package:ext_rw/src/api_client/request/arc_message.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
+import 'package:web_socket/web_socket.dart';
 
 ///
 /// Provide multiple requests via [ArcMessage] - a part of `ApiRequest`
@@ -51,17 +53,19 @@ class Messages {
         index++;
       }
     }
-    return _connect(id, bytes, keepAlive).then(
+    _log.trace('.fetch | Connecting...');
+    return _connect(id, bytes, keepAlive)
+      .then(
         (result) {
           switch (result) {
             case Ok<ArcMessage, Failure>(value: final message):
               return message.fetch(id, bytes);
             case Err<ArcMessage, Failure>(: final error):
-              return Err<ApiReply, Failure>(Failure(message: 'Messages.fetch | Error: $error', stackTrace: StackTrace.current));
+              return Err<ApiReply, Failure>(Failure.pass('Messages.fetch', error));
           }
         },
-        onError: (error) {
-            return Err<ApiReply, Failure>(Failure(message: 'Messages.fetch | Error: $error', stackTrace: StackTrace.current));
+        onError: (err) {
+            return Err<ApiReply, Failure>(Failure.pass('Messages.fetch', err));
         },
       );
   }
@@ -78,34 +82,62 @@ class Messages {
         // _log.debug('._connect | Connecting...');
         final connection = Completer<Result<ArcMessage, Failure>>();
         _connection = Some(connection);
-        _socket(id, bytes, keepAlive).then(
-          (result) {
-            // _log.debug('._connect | New connection result: $result');
-            switch (result) {
-              case Ok<ArcMessage, Failure>(value: final message):
-                // _log.debug('._connect | connected');
-                connection.complete(Ok(message));
-                _connection = None();
-              case Err<ArcMessage, Failure>(: final error):
-                connection.complete(
-                  Err(Failure(message: 'Messages._connect | Error: $error', stackTrace: StackTrace.current)),
-                );
-                _connection = None();
-            }
-          },
-          onError: (error) {
-            _log.warning('._connect | Error: $error');
-            connection.complete(
-              Err(Failure(message: 'Messages._connect | Error: $error', stackTrace: StackTrace.current)),
-            );
-            _connection = None();
-          },
-        );
+        if (kIsWeb) {
+          _log.debug('._connect | Web-Socket connecting...');
+          _socketWeb(id, bytes, keepAlive).then(
+            (result) {
+              // _log.debug('._connect | New connection result: $result');
+              switch (result) {
+                case Ok<ArcMessage, Failure>(value: final message):
+                  _log.debug('._connect | Web-Socket connected');
+                  connection.complete(Ok(message));
+                  _connection = None();
+                case Err<ArcMessage, Failure>(: final error):
+                  connection.complete(
+                    Err(Failure.pass('Messages._connect', error)),
+                  );
+                  _connection = None();
+              }
+            },
+            onError: (error) {
+              // _log.warning('._connect | Error: $error');
+              connection.complete(
+                Err(Failure.pass('Messages._connect', error)),
+              );
+              _connection = None();
+            },
+          );
+        } else {
+          _log.debug('._connect | TCP-Socket connecting...');
+          _socket(id, bytes, keepAlive).then(
+            (result) {
+              // _log.debug('._connect | New connection result: $result');
+              switch (result) {
+                case Ok<ArcMessage, Failure>(value: final message):
+                  _log.debug('._connect | TCP-Socket connected');
+                  connection.complete(Ok(message));
+                  _connection = None();
+                case Err<ArcMessage, Failure>(: final error):
+                  connection.complete(
+                    Err(Failure.pass('Messages._connect', error)),
+                  );
+                  _connection = None();
+              }
+            },
+            onError: (error) {
+              // _log.warning('._connect | Error: $error');
+              connection.complete(
+                Err(Failure.pass('Messages._connect', error)),
+              );
+              _connection = None();
+            },
+          );
+        }
         return connection.future;
     }
   }
   ///
-  /// Returns new connected [ArcMessage] or error
+  /// Returns new connected [ArcMessage] on the [Socket] or error
   Future<Result<ArcMessage, Failure>> _socket(int id, Bytes bytes, bool keepAlive) {
     return Socket
       .connect(_address.host, _address.port, timeout: _timeout)
@@ -119,8 +151,31 @@ class Messages {
           return Ok(message);
         },
         onError: (err) {
-          _log.warning('._socket | Error $err');
-          return Err<ArcMessage, Failure>(Failure(message: 'Messages._socket | Connection error: $err', stackTrace: StackTrace.current));
+          // _log.warning('._socket | Error $err');
+          return Err<ArcMessage, Failure>(Failure.pass('Messages._socket | Connection error', err));
+        },
+      );
+  }
+  ///
+  /// Returns new connected [ArcMessage] on the [WebSocket] or error
+  Future<Result<ArcMessage, Failure>> _socketWeb(int id, Bytes bytes, bool keepAlive) {
+    _log.trace('._socketWeb | Connecting...');
+    final uri = Uri.parse('ws://${_address.host}:${_address.port}');
+    _log.trace('._socketWeb | Uri: $uri');
+    return WebSocket
+      .connect(uri)
+      .then(
+        (socket) {
+          _log.trace('._socketWeb | Connected');
+          // socket.setOption(SocketOption.tcpNoDelay, true);
+          final message = ArcMessage(Message.web(socket), keepAlive, timeout: _timeout);
+          _messages.add(message);
+          // _log.warning('._socket | _messages $_messages');
+          return Ok(message);
+        },
+        onError: (err) {
+          // _log.warning('._socket | Error $err');
+          return Err<ArcMessage, Failure>(Failure.pass('Messages._socket | Connection error', err));
         },
       );
   }
@@ -129,7 +184,7 @@ class Messages {
   Future<void> close() {
     if (_connection case Some<Completer<Result<ArcMessage, Failure>>>(value: final connection)) {
       connection.complete(
-        Err(Failure(message: 'Messages.close | Connection closed', stackTrace: StackTrace.current)),
+        Err(Failure('Messages.close | Connection closed')),
       );
     }
     return Future.wait(_messages.map((msg) {

@@ -96,7 +96,7 @@ class SqlAccess<T, P> {
           Ok(value :final reply) => () {
             _log.debug("._fetch | reply: $reply");
             if (reply.hasError) {
-              return Err<List<T>, Failure>(Failure(message: reply.error.message, stackTrace: StackTrace.current));
+              return Err<List<T>, Failure>(Failure.pass('$runtimeType._fetch', reply.error.message));
             } else {
               final List<T> entries = [];
               final rows = reply.data;
@@ -112,14 +112,14 @@ class SqlAccess<T, P> {
               return Ok<List<T>, Failure>(entries);
             }
           }(), 
-          Err(:final error) => () {
-            _log.warn("._fetch | error: $error");
-            return Err<List<T>, Failure>(error);
+          Err(error:final err) => () {
+            // _log.warn("._fetch | error: $err");
+            return Err<List<T>, Failure>(Failure.pass('$runtimeType._fetch', err));
           }(),
         };
       },
       onError: (err) {
-        return Err<List<T>, Failure>(Failure(message: '$runtimeType._fetch | Error: $err', stackTrace: StackTrace.current));
+        return Err<List<T>, Failure>(Failure.pass('$runtimeType._fetch', err));
       },
     );
   }

@@ -26,10 +26,7 @@ class _SchemaReadEmpty<T extends SchemaEntryAbstract, P> implements SchemaRead<T
   //
   @override
   Future<Result<List<T>, Failure>> fetch({P? params}) {
-    return Future.value(Err(Failure(
-      message: "$runtimeType.fetch | read - not initialized", 
-      stackTrace: StackTrace.current,
-    )));
+    return Future.value(Err(Failure("$runtimeType.fetch | read - not initialized")));
   }
   //
   //

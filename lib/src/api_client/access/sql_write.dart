@@ -112,10 +112,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
       });
     }
     return Future.value(
-      Err(Failure(
-        message: "$runtimeType.insert | insertSqlBuilder is not initialized", 
-        stackTrace: StackTrace.current,
-      )),
+      Err(Failure("$runtimeType.insert | insertSqlBuilder is not initialized")),
     );
   }
   //
@@ -138,10 +135,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
       });
     }
     return Future.value(
-      Err(Failure(
-        message: "$runtimeType.update | updateSqlBuilder is not initialized", 
-        stackTrace: StackTrace.current,
-      )),
+      Err(Failure("$runtimeType.update | updateSqlBuilder is not initialized")),
     );
   }
   //
@@ -164,10 +158,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
       });
     }
     return Future.value(
-      Err(Failure(
-        message: "$runtimeType.delete | deleteSqlBuilder is not initialized", 
-        stackTrace: StackTrace.current,
-      )),
+      Err(Failure("$runtimeType.delete | deleteSqlBuilder is not initialized")),
     );
   }
   ///
@@ -184,7 +175,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
           Ok(:final value) => () {
             final reply = value;
             if (reply.hasError) {
-              return Err<void, Failure>(Failure(message: reply.error.message, stackTrace: StackTrace.current));
+              return Err<void, Failure>(Failure.pass('$runtimeType._fetch', reply.error.message));
             } else {
               return const Ok<void, Failure>(null);
             }
@@ -193,7 +184,7 @@ class SqlWrite<T extends SchemaEntryAbstract> implements SchemaWrite<T> {
         };
       },
       onError: (err) {
-        return Err<List<T>, Failure>(Failure(message: '$runtimeType._fetch | Error: $err', stackTrace: StackTrace.current));
+        return Err<List<T>, Failure>(Failure.pass('$runtimeType._fetch', err));
       },
     );
   }

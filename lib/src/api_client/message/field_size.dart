@@ -46,6 +46,6 @@ class FieldSize {
       final size = lst.buffer.asByteData().getInt32(0, _endian);
       return Ok(size);
     }
-    return Err(Failure(message: 'FieldSize.from | input bytes length less then specified $_len', stackTrace: StackTrace.current));
+    return Err(Failure('FieldSize.from | input bytes length less then specified $_len'));
   }
 }

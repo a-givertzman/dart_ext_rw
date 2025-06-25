@@ -62,7 +62,7 @@ enum FieldKind {
       40 => Ok(FieldKind.string),
       48 => Ok(FieldKind.timestamp),
       49 => Ok(FieldKind.duration),
-      _ => Err(Failure(message: 'FieldKind.fromBytes | Unknown Kind $val', stackTrace: StackTrace.current)),
+      _ => Err(Failure('FieldKind.fromBytes | Unknown Kind $val')),
     };
   }
   //

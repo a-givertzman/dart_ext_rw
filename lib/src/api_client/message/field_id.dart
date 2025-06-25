@@ -46,7 +46,7 @@ class FieldId {
       final id = lst.buffer.asByteData().getInt32(0, _endian);
       return Ok(id);
     }
-    return Err(Failure(message: 'FieldId.from | input bytes length less then specified $_len', stackTrace: StackTrace.current));
+    return Err(Failure('FieldId.from | input bytes length less then specified $_len'));
   }
   //
   //

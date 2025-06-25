@@ -73,10 +73,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
             for (final entry in entries) {
               _log.debug('.fetch | entry[${entry.key}]: $entry');
               if (_entries.containsKey(entry.key)) {
-                return Err<List<T>, Failure>(Failure(
-                  message: "$runtimeType.fetch | dublicated entry key: ${entry.key}", 
-                  stackTrace: StackTrace.current,
-                ));
+                return Err<List<T>, Failure>(Failure("$runtimeType.fetch | dublicated entry key: ${entry.key}"));
               }
               entry.selectionChanged((bool isSelected) {
                 _entrySelectionChanged(entry.key, isSelected);
@@ -92,10 +89,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
       },
       onError: (err) {
         final result = Err<List<T>, Failure>(
-          Failure(
-              message: "$runtimeType.fetch | Error: $err", 
-              stackTrace: StackTrace.current,
-            ),
+          Failure.pass('$runtimeType.fetch', err),
         );
         if (_controller.hasListener) _controller.add(result);
         return result;
@@ -158,10 +152,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   @override
   Future<Result<void, Failure>> fetchRelations() {
     return Future.value(
-      Err(Failure(
-        message: '$runtimeType.fetchRelations | method does not exists', 
-        stackTrace: StackTrace.current,
-      )),
+      Err(Failure('$runtimeType.fetchRelations | method does not exists')),
     );
   }
   //
@@ -174,10 +165,7 @@ class TableSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbstra
   //
   @override
   Result<TableSchema<SchemaEntry, dynamic>, Failure> relation(String id) {
-    return Err(Failure(
-        message: '$runtimeType.relation | method does not exists', 
-        stackTrace: StackTrace.current,
-    ));
+    return Err(Failure('$runtimeType.relation | method does not exists'));
   }
   //
   //
