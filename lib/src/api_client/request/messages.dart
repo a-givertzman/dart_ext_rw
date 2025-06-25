@@ -12,7 +12,6 @@ import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
 import 'package:web_socket/web_socket.dart';
-import 'package:web_socket/browser_web_socket.dart';
 
 ///
 /// Provide multiple requests via [ArcMessage] - a part of `ApiRequest`

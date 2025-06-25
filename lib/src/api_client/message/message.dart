@@ -17,7 +17,6 @@ import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:web_socket/web_socket.dart';
-import 'package:web_socket/browser_web_socket.dart';
 ///
 /// Extracting `id`, `kind` and `payload` parts from the socket stream
 /// 
@@ -211,14 +210,11 @@ class _AnySocketWeb implements _AnySocket {
     return _socket.events
       .where((WebSocketEvent event) {
         switch (event) {
-          // case TextDataReceived(:final text):
-          //   _log.debug('.listen | TextDataReceived - not supported for now \n\t$text');
-          case BinaryDataReceived(:final data):
-            // _log.debug('.listen | BinaryDataReceived \n\t$data');
+          case BinaryDataReceived():
             return true;
-          case CloseReceived(:final code):
+          // case CloseReceived():
             // _log.debug('.listen | CloseReceived: $code');
-            return true;
+            // return true;
           default:
             return false;
         }
@@ -228,7 +224,7 @@ class _AnySocketWeb implements _AnySocket {
           case TextDataReceived(:final text):
             _log.debug('.listen | TextDataReceived - not supported for now \n\t$text');
           case BinaryDataReceived(:final data):
-            _log.debug('.listen | BinaryDataReceived \n\t$data');
+            _log.trace('.listen | BinaryDataReceived \n\t$data');
             return data;
           case CloseReceived(:final code):
             _log.debug('.listen | CloseReceived: $code');
@@ -237,7 +233,7 @@ class _AnySocketWeb implements _AnySocket {
       })
       .listen(
         (event) {
-          _log.debug('.listen | event: $event');
+          _log.trace('.listen | event: $event');
           onData?.call(event);
         },
         onError: onError,
