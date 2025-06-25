@@ -112,9 +112,9 @@ class SqlAccess<T, P> {
               return Ok<List<T>, Failure>(entries);
             }
           }(), 
-          Err(:final error) => () {
-            _log.warn("._fetch | error: $error");
-            return Err<List<T>, Failure>(error);
+          Err(error:final err) => () {
+            _log.warn("._fetch | error: $err");
+            return Err<List<T>, Failure>(Failure.pass('$runtimeType._fetch', err));
           }(),
         };
       },
