@@ -11,6 +11,8 @@ import 'package:hmi_core/hmi_core_failure.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
+import 'package:web_socket/web_socket.dart';
+import 'package:web_socket/browser_web_socket.dart';
 
 ///
 /// Provide multiple requests via [ArcMessage] - a part of `ApiRequest`
@@ -159,40 +161,42 @@ class Messages {
   /// Returns new connected [ArcMessage] on the [WebSocket] or error
   Future<Result<ArcMessage, Failure>> _socketWeb(int id, Bytes bytes, bool keepAlive) {
     _log.debug('._socketWeb | Connecting...');
-    return Socket.connect(_address.host, _address.port, timeout: _timeout)
-      .then((socket) {
-        _log.debug('._socketWeb | Upgrade...');
-        final ws = WebSocket.fromUpgradedSocket(
-          socket,
-          serverSide: false,
-        );
-        _log.debug('._socketWeb | Upgrade - Ok');
-          final msg = Message.web(ws);
+    final uri = Uri.parse('ws://${_address.host}:${_address.port}');
+    _log.debug('._socketWeb | Uri: $uri');
+    return WebSocket
+      .connect(uri)
+      .then(
+        (socket) {
+          _log.debug('._socketWeb | Connected');
+          // socket.setOption(SocketOption.tcpNoDelay, true);
+          _log.debug('._socketWeb | Message create...');
+          final msg = Message.web(socket);
           _log.debug('._socketWeb | ArcMessage create...');
           final message = ArcMessage(msg, keepAlive, timeout: _timeout);
           _messages.add(message);
           // _log.warning('._socket | _messages $_messages');
           return Ok(message);
-      });
-    // return 
-    //   .connect('ws://${_address.host}:${_address.port}')
-    //   .then(
-    //     (socket) {
-    //       _log.debug('._socketWeb | Connected');
-    //       // socket.setOption(SocketOption.tcpNoDelay, true);
-    //       _log.debug('._socketWeb | Message create...');
-    //       final msg = Message.web(socket);
+        },
+        onError: (err) {
+          _log.warning('._socket | Error $err');
+          return Err<ArcMessage, Failure>(Failure(message: 'Messages._socket | Connection error: $err', stackTrace: StackTrace.current));
+        },
+      );
+    // return Socket.connect(_address.host, _address.port, timeout: _timeout)
+    //   .then((socket) {
+    //     _log.debug('._socketWeb | Upgrade...');
+    //     final ws = WebSocket.fromUpgradedSocket(
+    //       socket,
+    //       serverSide: false,
+    //     );
+    //     _log.debug('._socketWeb | Upgrade - Ok');
+    //       final msg = Message.web(ws);
     //       _log.debug('._socketWeb | ArcMessage create...');
     //       final message = ArcMessage(msg, keepAlive, timeout: _timeout);
     //       _messages.add(message);
     //       // _log.warning('._socket | _messages $_messages');
     //       return Ok(message);
-    //     },
-    //     onError: (err) {
-    //       _log.warning('._socket | Error $err');
-    //       return Err<ArcMessage, Failure>(Failure(message: 'Messages._socket | Connection error: $err', stackTrace: StackTrace.current));
-    //     },
-    //   );
+    //   });
   }
   ///
   /// Closes connection

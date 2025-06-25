@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_id.dart';
@@ -15,6 +16,8 @@ import 'package:ext_rw/src/api_client/message/parse_size.dart';
 import 'package:ext_rw/src/api_client/message/parse_syn.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
+import 'package:web_socket/web_socket.dart';
+import 'package:web_socket/browser_web_socket.dart';
 ///
 /// Extracting `id`, `kind` and `payload` parts from the socket stream
 /// 
@@ -205,19 +208,48 @@ class _AnySocketWeb implements _AnySocket {
     bool? cancelOnError,
   }) {
     _log.debug('.listen | ...');
-    return _socket.listen(
-      (event) {
-        _log.debug('.listen | event: $event');
-      },
-      onError: onError,
-      onDone: onDone,
-    ) as StreamSubscription<List<int>>;
+    return _socket.events
+      .where((WebSocketEvent event) {
+        switch (event) {
+          // case TextDataReceived(:final text):
+          //   _log.debug('.listen | TextDataReceived - not supported for now \n\t$text');
+          case BinaryDataReceived(:final data):
+            // _log.debug('.listen | BinaryDataReceived \n\t$data');
+            return true;
+          case CloseReceived(:final code):
+            // _log.debug('.listen | CloseReceived: $code');
+            return true;
+          default:
+            return false;
+        }
+      })
+      .map<List<int>>((event) {
+        switch (event) {
+          case TextDataReceived(:final text):
+            _log.debug('.listen | TextDataReceived - not supported for now \n\t$text');
+          case BinaryDataReceived(:final data):
+            _log.debug('.listen | BinaryDataReceived \n\t$data');
+            return data;
+          case CloseReceived(:final code):
+            _log.debug('.listen | CloseReceived: $code');
+        }
+        return [];
+      })
+      .listen(
+        (event) {
+          _log.debug('.listen | event: $event');
+          onData?.call(event);
+        },
+        onError: onError,
+        onDone: onDone,
+      );
   }
   ///
   /// Adds byte [data] to the associated socket.
   @override
   void add(data) {
-    return _socket.add(data);
+    return _socket.sendBytes(Uint8List.fromList(data));
+    // return _socket.add(data);
   }
   ///
   ///
