@@ -77,11 +77,11 @@ class ArcMessage {
       _queries[id] = completer;
       _message.add(id, bytes);
       return completer.future.timeout(_timeout, onTimeout: () {
-        return Err<ApiReply, Failure>(Failure(message: 'ArcMessage.fetch | Timeout ($_timeout) expired', stackTrace: StackTrace.current));
+        return Err<ApiReply, Failure>(Failure('ArcMessage.fetch | Timeout ($_timeout) expired'));
       });
     }
     return Future.value(
-      Err<ApiReply, Failure>(Failure(message: 'ArcMessage.fetch | Duplicated id \'$id\'', stackTrace: StackTrace.current)),
+      Err<ApiReply, Failure>(Failure('ArcMessage.fetch | Duplicated id \'$id\'')),
     );
   }
   //

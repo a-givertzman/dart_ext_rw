@@ -95,7 +95,7 @@ class ApiRequest {
           }
           return value;
         },
-        onError: (err) => Failure(message: '$runtimeType._fetchSocket| Error: $err', stackTrace: StackTrace.current),
+        onError: (err) => Failure.pass('$runtimeType._fetchSocket', err),
       );
   }
   ///

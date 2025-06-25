@@ -95,7 +95,7 @@ class Message {
           }
         },
         onError: (err) async {
-          _log.error('.listen.onError | Error: $err');
+          // _log.error('.listen.onError | Error: $err');
           await Future.wait([
             _subscription?.cancel() ?? Future.value(),
             _socket.close(),
@@ -239,6 +239,7 @@ class _AnySocketWeb implements _AnySocket {
         },
         onError: onError,
         onDone: onDone,
+        cancelOnError: cancelOnError,
       );
   }
   ///

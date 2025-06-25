@@ -32,28 +32,19 @@ class _SchemaWriteEmpty<T extends SchemaEntryAbstract> implements SchemaWrite<T>
   //
   @override
   Future<Result<void, Failure>> delete(T _) {
-    return Future.value(Err(Failure(
-      message: "$runtimeType.delete | write - not initialized", 
-      stackTrace: StackTrace.current,
-    )));
+    return Future.value(Err(Failure("$runtimeType.delete | write - not initialized")));
   }
   //
   //
   @override
   Future<Result<T, Failure>> insert(T? _) {
-    return Future.value(Err(Failure(
-      message: "$runtimeType.insert | write - not initialized", 
-      stackTrace: StackTrace.current,
-    )));
+    return Future.value(Err(Failure("$runtimeType.insert | write - not initialized")));
   }
   //
   //
   @override
   Future<Result<void, Failure>> update(T _) {
-    return Future.value(Err(Failure(
-      message: "$runtimeType.update | write - not initialized", 
-      stackTrace: StackTrace.current,
-    )));
+    return Future.value(Err(Failure("$runtimeType.update | write - not initialized")));
   }
   //
   //
