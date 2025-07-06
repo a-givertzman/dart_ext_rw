@@ -50,9 +50,10 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
       fetchRelations(),
       _schema.fetch(params).then((result) {
         schemaFetchResult = result;
-        if (_controller.hasListener) _controller.add(result);
       }),
-    ]);
+    ]).then((_) {
+      if (_controller.hasListener) _controller.add(schemaFetchResult);
+    });
     return schemaFetchResult;
   }
   //
