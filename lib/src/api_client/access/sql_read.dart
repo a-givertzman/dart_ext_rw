@@ -95,7 +95,7 @@ class SqlRead<T extends SchemaEntryAbstract, P> implements SchemaRead<T, P> {
           Ok(value :final reply) => () {
             _log.debug("._fetch | reply: $reply");
             if (reply.hasError) {
-              return Err<List<T>, Failure>(Failure(message: reply.error.message, stackTrace: StackTrace.current));
+              return Err<List<T>, Failure>(Failure.pass('$runtimeType._fetch', reply.error.message));
             } else {
               final List<T> entries = [];
               final rows = reply.data;
@@ -118,7 +118,7 @@ class SqlRead<T extends SchemaEntryAbstract, P> implements SchemaRead<T, P> {
         };
       },
       onError: (err) {
-        return Err<List<T>, Failure>(Failure(message: '$runtimeType._fetch | Error: $err', stackTrace: StackTrace.current));
+        return Err<List<T>, Failure>(Failure.pass('$runtimeType._fetch', err));
       },
     );
   }

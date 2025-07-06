@@ -54,10 +54,7 @@ class SchemaEntry implements SchemaEntryAbstract {
     if (value != null) {
       return value.isChanged;
     }
-    throw Failure(
-      message: "$runtimeType.isValueChanged | key '$key' - not found", 
-      stackTrace: StackTrace.current,
-    );
+    throw Failure("$runtimeType.isValueChanged | key '$key' - not found");
   }
   ///
   /// Returns selection state
@@ -75,10 +72,7 @@ class SchemaEntry implements SchemaEntryAbstract {
     if (value != null) {
       return value;
     }
-    throw Failure(
-      message: "$runtimeType.value | key '$key' - not found", 
-      stackTrace: StackTrace.current,
-    );
+    throw Failure("$runtimeType.value | key '$key' - not found");
   }
   ///
   /// Updates field value by field name [key]
@@ -86,10 +80,7 @@ class SchemaEntry implements SchemaEntryAbstract {
   void update(String key, dynamic value) {
     _log.debug('.update | key: $key, \t value: $value, \t valuetype: ${value.runtimeType}');
     if (!_map.containsKey(key)) {
-      throw Failure(
-        message: "$runtimeType.update | key '$key' - not found", 
-        stackTrace: StackTrace.current,
-      );
+      throw Failure("$runtimeType.update | key '$key' - not found");
     }
     final field = _map[key];
     _log.debug('.update | key: $key, \t field: $field');

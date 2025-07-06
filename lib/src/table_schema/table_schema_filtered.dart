@@ -61,13 +61,13 @@ class TableSchemaFiltered<T extends SchemaEntryAbstract, P> implements TableSche
             return Ok(result);
           case Err<List<T>, Failure>(: final error):
             return Err<List<T>, Failure>(
-              Failure(message: "$runtimeType.fetch | Error: $error", stackTrace: StackTrace.current),
+              Failure.pass('$runtimeType.fetch', error),
             );
         }
       },
       onError: (err) {
         final result = Err<List<T>, Failure>(
-          Failure(message: "$runtimeType.fetch | Error: $err", stackTrace: StackTrace.current),
+          Failure.pass('$runtimeType.fetch', err),
         );
         if (_controller.hasListener) _controller.add(result);
         return result;
@@ -103,10 +103,7 @@ class TableSchemaFiltered<T extends SchemaEntryAbstract, P> implements TableSche
   @override
   Future<Result<void, Failure>> fetchRelations() {
     return Future.value(
-      Err(Failure(
-        message: '$runtimeType.fetchRelations | method does not exists', 
-        stackTrace: StackTrace.current,
-      )),
+      Err(Failure('$runtimeType.fetchRelations | method does not exists')),
     );
   }
   //

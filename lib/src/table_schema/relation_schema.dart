@@ -45,14 +45,15 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
   /// Fetchs data with new sql built from [values]
   @override
   Future<Result<List<T>, Failure>> fetch(params) async {
-    Result<List<T>, Failure> schemaFetchResult = Err(Failure(message: '$runtimeType.fetch | Just initialized only', stackTrace: StackTrace.current));
+    Result<List<T>, Failure> schemaFetchResult = Err(Failure('$runtimeType.fetch | Just initialized only'));
     await Future.wait([
       fetchRelations(),
       _schema.fetch(params).then((result) {
         schemaFetchResult = result;
-        if (_controller.hasListener) _controller.add(result);
       }),
-    ]);
+    ]).then((_) {
+      if (_controller.hasListener) _controller.add(schemaFetchResult);
+    });
     return schemaFetchResult;
   }
   //
@@ -79,8 +80,7 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
       return Ok(rel);
     } else {
       return Err(Failure(
-        message: "$runtimeType.relation | id: $id - not found", 
-        stackTrace: StackTrace.current,
+        '$runtimeType.relation | id: $id - not found', 
       ));
     }
   }
@@ -113,12 +113,9 @@ class RelationSchema<T extends SchemaEntryAbstract, P> implements TableSchemaAbs
           case Ok(:final value):
             await value.fetch(null);
           case Err(:final error):
-            final message = "$runtimeType.fetchRelations | relation '${field.relation}' - not found\n\terror: $error";
-            _log.warning(message);
-            result = Err(Failure(
-              message: message, 
-              stackTrace: StackTrace.current,
-            ));
+            final err = Failure.pass("$runtimeType.fetchRelations | relation '${field.relation}' - not found", error);
+            _log.warning(err);
+            result = Err(err);
         }
       }
     }

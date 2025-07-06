@@ -15,9 +15,10 @@ dependencies:
     # path: ../hmi_core
     git:
       url: https://github.com/a-givertzman/hmi_core.git
-      ref: 2.1.6
+      ref: 2.2.0
   uuid: ^4.5.1
-  web_socket_channel: ^3.0.1
+  # web_socket_channel: ^3.0.1
+  web_socket: ^1.0.1
 
 dev_dependencies:
   flutter_test:
