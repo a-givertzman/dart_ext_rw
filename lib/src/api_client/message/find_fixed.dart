@@ -15,7 +15,7 @@ class FindFixed implements MessageParse<Bytes, Option<Bytes>> {
   }): _val = val;
   ///
   /// Returns specified SYN value
-  int get syn => _val.syn;
+  int get val => _val.syn;
   ///
   /// Returns Ok if `Syn` parsed or Err
   @override
