@@ -1,36 +1,46 @@
-import 'package:ext_rw/src/api_client/message/field_syn.dart';
+import 'package:ext_rw/src/api_client/message/field_const.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 ///
-/// Extracting some identifier symbol from the input bytes
+/// Searches & Extracts some `Key` symbol from the input bytes
 /// - Used to identify a start of the message for example
 class FindFixed implements MessageParse<Bytes, Option<Bytes>> {
-  final FieldSyn _val;
+  final FieldConst _field;
   Option _value = None();
   ///
   /// Returns [FindFixed] new instance
-  /// - [val] - some bytes to be searched in the message,
+  /// - [val] - some `Key` to be searched in the message,
   FindFixed({
-    required FieldSyn val,
-  }): _val = val;
+    required FieldConst val,
+  }): _field = val;
+  // ///
+  // /// Returns specified field value
+  // int get val => _field.val;
   ///
-  /// Returns specified SYN value
-  int get val => _val.syn;
-  ///
-  /// Returns Ok if `Syn` parsed or Err
+  /// Returns Ok if `Key` found and parsed or Err
   @override
   Option<Bytes> parse(Bytes bytes) {
     switch (_value) {
       case Some():
         return Some(bytes);
       case None():
-        final pos = bytes.indexWhere((b) => b == _val.syn);
-        if (pos >= 0) {
-          _value = Some(null);
-          return Some(bytes.sublist(pos + 1));
-        } else {
-          return None();
+        final first = _field.bytes.firstOrNull;
+        if (first != null) {
+          final pos = bytes.indexWhere((b) => b == first);
+          if (pos >= 0) {
+            if (_field.bytes.length > 1) {
+              if (listEquals(bytes.sublist(pos, pos + _field.bytes.length), _field.bytes)) {
+                _value = Some(null);
+                return Some(bytes.sublist(pos + 1));
+              }
+            } else {
+              _value = Some(null);
+              return Some(bytes.sublist(pos + 1));
+            }
+          }
         }
+        return None();
     }
   }
   //
