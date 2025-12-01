@@ -28,7 +28,7 @@ void main() {
           fieldSyn.reset();
         }
         switch (fieldSyn.parse(bytes)) {
-          case Some<List<int>>(value: Bytes resultBytes):
+          case Some<(Null, Null, List<int>)>(value: (_, _, Bytes resultBytes)):
             expect(
               target,
               isA<Some>(),
@@ -65,7 +65,7 @@ void main() {
           fieldSyn.reset();
         }
         switch (fieldSyn.parse(bytes)) {
-          case Some<List<int>>(value: Bytes resultBytes):
+          case Some<(Null, Null, List<int>)>(value: (_, _, Bytes resultBytes)):
             expect(
               target,
               isA<Some>(),

@@ -1,3 +1,5 @@
+import 'package:hmi_core/hmi_core_option.dart';
+
 ///
 /// # Messages received over socket.
 /// 
@@ -31,10 +33,10 @@
 ///     - 48, Timestamp
 ///     - 49, Duration
 ///     - .., ...
-abstract class MessageParse<I, T> {
+abstract class MessageParse<FldIn, FldOut, Out> {
   ///
   /// Returns T if parsed
-  T parse(I input);
+  Option<(FldIn, FldOut, Out)> parse(Bytes input);
   ///
   /// Resets state to the initial
   void reset();

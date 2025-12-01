@@ -5,7 +5,7 @@ import 'package:hmi_core/hmi_core_option.dart';
 ///
 /// Searches & Extracts some `Key` symbol from the input bytes
 /// - Used to identify a start of the message for example
-class FindFixed implements MessageParse<Bytes, Option<Bytes>> {
+class FindFixed implements MessageParse<Null, Null, Bytes> {
   final FieldConst _field;
   Option _value = None();
   ///
@@ -20,10 +20,10 @@ class FindFixed implements MessageParse<Bytes, Option<Bytes>> {
   ///
   /// Returns Ok if `Key` found and parsed or Err
   @override
-  Option<Bytes> parse(Bytes bytes) {
+  Option<(Null, Null, Bytes)> parse(Bytes bytes) {
     switch (_value) {
       case Some():
-        return Some(bytes);
+        return Some((null, null, bytes));
       case None():
         final first = _field.bytes.firstOrNull;
         if (first != null) {
@@ -33,11 +33,11 @@ class FindFixed implements MessageParse<Bytes, Option<Bytes>> {
               final end = pos + _field.bytes.length;
               if (listEquals(bytes.sublist(pos, end), _field.bytes)) {
                 _value = Some(null);
-                return Some(bytes.sublist(end));
+                return Some((null, null, bytes.sublist(end)));
               }
             } else {
               _value = Some(null);
-              return Some(bytes.sublist(pos + 1));
+              return Some((null, null, bytes.sublist(pos + 1)));
             }
           }
         }
