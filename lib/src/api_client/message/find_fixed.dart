@@ -30,9 +30,10 @@ class FindFixed implements MessageParse<Bytes, Option<Bytes>> {
           final pos = bytes.indexWhere((b) => b == first);
           if (pos >= 0) {
             if (_field.bytes.length > 1) {
-              if (listEquals(bytes.sublist(pos, pos + _field.bytes.length), _field.bytes)) {
+              final end = pos + _field.bytes.length;
+              if (listEquals(bytes.sublist(pos, end), _field.bytes)) {
                 _value = Some(null);
-                return Some(bytes.sublist(pos + 1));
+                return Some(bytes.sublist(end));
               }
             } else {
               _value = Some(null);

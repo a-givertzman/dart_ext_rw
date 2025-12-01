@@ -22,7 +22,6 @@ class FieldConst {
     _val = val;
   ///
   /// Returns [FieldConst] new instance from u8 value
-  /// - `endian` - Word ordeting, default `Endian.little`
   FieldConst.fromU8(int val, {Endian endian = Endian.little}):
     _len = 1,
     _endian = endian,
@@ -54,7 +53,6 @@ class FieldConst {
     bytes = Uint8List(8)..buffer.asByteData().setUint64(0, val, endian);
   ///
   /// Returns [FieldConst] new instance from i8 value
-  /// - `endian` - Word ordeting, default `Endian.little`
   FieldConst.fromI8(int val, {Endian endian = Endian.little}):
     _len = 1,
     _endian = endian,

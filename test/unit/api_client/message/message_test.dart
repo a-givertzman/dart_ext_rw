@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:ext_rw/src/api_client/message/field_const.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_syn.dart';
+import 'package:ext_rw/src/api_client/message/find_fixed.dart';
 import 'package:ext_rw/src/api_client/message/message.dart';
 import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
@@ -103,7 +105,7 @@ class Server {
                 field: ParseKind(
                   field: ParseId(
                   id: FieldId.def(),
-                    field: ParseSyn.def(),
+                    field: FindFixed(val: FieldConst.fromU8(22)),
                   ),
                 ),
               ),
