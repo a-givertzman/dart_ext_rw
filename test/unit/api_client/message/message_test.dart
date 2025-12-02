@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:ext_rw/src/api_client/message/field_const.dart';
 import 'package:ext_rw/src/api_client/message/field_data.dart';
@@ -10,17 +11,15 @@ import 'package:ext_rw/src/api_client/message/find_fixed.dart';
 import 'package:ext_rw/src/api_client/message/message.dart';
 import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
-import 'package:ext_rw/src/api_client/message/parse_data.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
-import 'package:ext_rw/src/api_client/message/parse_id.dart';
-import 'package:ext_rw/src/api_client/message/parse_kind.dart';
-import 'package:ext_rw/src/api_client/message/parse_size.dart';
-import 'package:ext_rw/src/api_client/message/parse_syn.dart';
+import 'package:ext_rw/src/api_client/message/parse_fixed.dart';
+import 'package:ext_rw/src/api_client/message/parse_sized.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
+import 'package:hmi_core/hmi_core_result.dart';
 ///
 /// setup constants
 const int syn = 22;
@@ -29,7 +28,7 @@ const keepGo = false;
 ///
 /// FakeRequest
 class FakeRequest {
-  final _log = Log('Request');
+  final _log = Log('FakeRequest');
   final Map<int, Completer<Bytes>> _queries = {};
   final Message _message;
   int id = 0;
@@ -99,14 +98,29 @@ class Server {
         server.listen(
           (socket) {
             _log.debug('.listen | Connection on: ${socket.address}');
-            final message = ParseData(
-              field: ParseSize(
-                size: FieldSize.def(),
-                field: ParseKind(
-                  field: ParseId(
-                  id: FieldId.def(),
-                    field: FindFixed(val: FieldConst.fromU8(22)),
-                  ),
+            final message = ParseSized(
+              size: (_, FieldSize size) => size.size,
+              fromBytes: (Bytes bytes) => bytes,
+              field: ParseFixed<((Null, Null), FieldId), FieldKind, FieldSize>(
+                size: 4,
+                fromBytes: (Bytes bytes) => switch (FieldSize(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+                  Ok(:final value) => Ok(FieldSize(value)),
+                  Err() => Err(null),
+                },
+                field: ParseFixed<(Null, Null), FieldId, FieldKind>(
+                  size: 1,
+                  fromBytes: (Bytes bytes) => switch (FieldKind.from(bytes[0])) {
+                    Ok(:final value) => Ok(value),
+                    Err() => Err(null),
+                  },
+                  field: ParseFixed<Null, Null, FieldId>(
+                    size: 4,
+                    fromBytes: (Bytes bytes) => switch (FieldId(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+                      Ok(:final value) => Ok(FieldId(value)),
+                      Err() => Err(null),
+                    },
+                    field: FindFixed(FieldConst.fromU8(syn)),
+                    ),
                 ),
               ),
             );
@@ -117,26 +131,24 @@ class Server {
               size: FieldSize.def(),
               data: FieldData([]),
             );
+            final remains = BytesBuilder(copy: true);
             socket.listen(
               (event) {
                 // _log.debug('.listen.onData | event (${event.length}): $event');
-                Uint8List? input = event;
-                bool isSome = true;
-                while (isSome) {
-                  // _log.debug('.listen.onData | input (${input?.length}): $input');
-                  switch (message.parse(input)) {
-                    case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
-                      _log.debug('.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
-                      Future.delayed(Duration(milliseconds: 500), () {
-                        final reply = messageBuild.build(bytes, id: id.id);
-                        socket.add(reply);
-                      });
-                      _log.debug('.listen.onData | Microtask started');
-                      input = null;
-                    case None():
-                      _log.debug('.listen.onData | Parsed | None');
-                      isSome = false;
-                  }
+                remains.add(event);
+                // _log.debug('.listen.onData | input (${input?.length}): $input');
+                switch (message.parse(remains.takeBytes())) {
+                  case Some<(((((Null, Null), FieldId), FieldKind), FieldSize), Bytes, Bytes)>(  value: (((((null, null), FieldId id), FieldKind kind), FieldSize size), Bytes bytes, Bytes remainder)  ):
+                    remains.add(remainder);
+                  // case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
+                    _log.debug('.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
+                    Future.delayed(Duration(milliseconds: 500), () {
+                      final reply = messageBuild.build(bytes, id: id.id);
+                      socket.add(reply);
+                    });
+                    _log.debug('.listen.onData | Microtask started');
+                  case None():
+                    _log.debug('.listen.onData | Parsed | None');
                 }
               },
               onError: (err) {
@@ -164,7 +176,7 @@ class Server {
   }
 }
 ///
-/// Testing [ParseData].parse
+/// Testing [Message]
 void main() {
   Log.initialize(level: LogLevel.all);
   final log = Log('Test:Message');
@@ -226,14 +238,29 @@ void main() {
     ///
     ///
     test('.parse()', () async {
-      ParseData parseData = ParseData(
-        field: ParseSize(
-          size: FieldSize.def(),
-          field: ParseKind(
-            field: ParseId(
-              id: FieldId.def(),
-              field: ParseSyn.def(),
-            ),
+      final parseSized = ParseSized(
+        size: (_, FieldSize size) => size.size,
+        fromBytes: (Bytes bytes) => bytes,
+        field: ParseFixed<((Null, Null), FieldId), FieldKind, FieldSize>(
+          size: 4,
+          fromBytes: (Bytes bytes) => switch (FieldSize(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+            Ok(:final value) => Ok(FieldSize(value)),
+            Err() => Err(null),
+          },
+          field: ParseFixed<(Null, Null), FieldId, FieldKind>(
+            size: 1,
+            fromBytes: (Bytes bytes) => switch (FieldKind.from(bytes[0])) {
+              Ok(:final value) => Ok(value),
+              Err() => Err(null),
+            },
+            field: ParseFixed<Null, Null, FieldId>(
+              size: 4,
+              fromBytes: (Bytes bytes) => switch (FieldId(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+                Ok(:final value) => Ok(FieldId(value)),
+                Err() => Err(null),
+              },
+              field: FindFixed(FieldConst.fromU8(syn)),
+              ),
           ),
         ),
       );
@@ -249,29 +276,23 @@ void main() {
         (09,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
         (09,  keepGo, [ 71                  ], Some((FieldId(14), FieldKind.bytes,  10)), [62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
         (10, restart, [syn,  00,  00, 00, 15, 02,  00, 00, 01], None(                       ), []),
-        (11,  keepGo, [ 02,  62,  63, 64, 65], None(                       ), []),
+        (11,  keepGo, [ 132,  62,  63, 64, 65], None(                       ), []),
         (12,  keepGo, [ 66,  67,  68, 69, 70], None(                       ), []),
         (13,  keepGo, [ 71,  72,  73, 74, 75], None(                       ), []),
-        (14,  keepGo, [for(var i=76; i<=316; i+=1) i], None(                ), []),
-        (15,  keepGo, [317, 318, 319        ], Some((FieldId(15), FieldKind.bytes,  258)), [for(var i=62; i<=319; i+=1) i]),
+        (14,  keepGo, [for(var i=76; i<=255; i+=1) i], None(                ), []),
+        (14,  keepGo, [for(var i=254; i>=64; i-=1) i], None(                ), []),
+        (15,  keepGo, [63, 62, 61        ], Some((FieldId(15), FieldKind.bytes,  388)), [...[for(var i=62; i<=255; i+=1) i], ...[for(var i=254; i>=61; i-=1) i]]),
       ];
+      final remains = BytesBuilder(copy: true);
       for (final (step, restart, bytes, target, targetBytes) in testData) {
         log.debug('.parse | step: $step,  targetBytes.length: ${targetBytes.length}');
         if (restart) {
-          parseData = ParseData(
-            field: ParseSize(
-              size: FieldSize.def(),
-              field: ParseKind(
-                field: ParseId(
-                id: FieldId.def(),
-                  field: ParseSyn.def(),
-                ),
-              ),
-            ),
-          );
+          parseSized.reset();
         }
-        switch (parseData.parse(bytes)) {
-          case Some(value: (FieldId id, FieldKind kind, FieldSize size, Bytes resultBytes)):
+        remains.add(bytes);
+        switch (parseSized.parse(remains.takeBytes())) {
+          case Some<(((((Null, Null), FieldId), FieldKind), FieldSize), Bytes, Bytes)>(  value: (((((null, null), FieldId id), FieldKind kind), FieldSize size), Bytes result, Bytes remainder)  ):
+            remains.add(remainder);
             final targetId = target.unwrap().$1;
             final targetKind = target.unwrap().$2;
             final targetSize = target.unwrap().$3;
@@ -296,9 +317,9 @@ void main() {
               reason: 'step: $step \n result: ${size.size} \n target: $targetSize',
             );
             expect(
-              listEquals(resultBytes, targetBytes),
+              listEquals(result, targetBytes),
               true,
-              reason: 'step: $step \n result: $resultBytes \n target: $targetBytes',
+              reason: 'step $step \n result: $result \n target: $targetBytes',
             );
           case None():
             expect(

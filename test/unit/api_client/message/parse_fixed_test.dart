@@ -42,7 +42,7 @@ void main() {
                 Err() => Err(null),
               };
             },
-            field: FindFixed(val: FieldConst.fromU8(syn)),
+            field: FindFixed(FieldConst.fromU8(syn)),
             ),
         ),
       );

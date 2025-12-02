@@ -6,17 +6,20 @@ import 'package:hmi_core/hmi_core_option.dart';
 /// Searches & Extracts some `Key` symbol from the input bytes
 /// - Used to identify a start of the message for example
 class FindFixed implements MessageParse<Null, Null, Bytes> {
-  final FieldConst _field;
+  final List<int> _bytes;
   Option _value = None();
   ///
   /// Returns [FindFixed] new instance
   /// - [val] - some `Key` to be searched in the message,
-  FindFixed({
-    required FieldConst val,
-  }): _field = val;
-  // ///
-  // /// Returns specified field value
-  // int get val => _field.val;
+  FindFixed(
+    FieldConst val,
+  ): _bytes = val.bytes;
+  ///
+  /// Returns [FindFixed] new instance
+  /// - [val] - some `Key` to be searched in the message,
+  FindFixed.fromBytes(
+    List<int> bytes,
+  ): _bytes = bytes;
   ///
   /// Returns Ok if `Key` found and parsed or Err
   @override
@@ -25,13 +28,13 @@ class FindFixed implements MessageParse<Null, Null, Bytes> {
       case Some():
         return Some((null, null, bytes));
       case None():
-        final first = _field.bytes.firstOrNull;
+        final first = _bytes.firstOrNull;
         if (first != null) {
           final pos = bytes.indexWhere((b) => b == first);
           if (pos >= 0) {
-            if (_field.bytes.length > 1) {
-              final end = pos + _field.bytes.length;
-              if (listEquals(bytes.sublist(pos, end), _field.bytes)) {
+            if (_bytes.length > 1) {
+              final end = pos + _bytes.length;
+              if (listEquals(bytes.sublist(pos, end), _bytes)) {
                 _value = Some(null);
                 return Some((null, null, bytes.sublist(end)));
               }

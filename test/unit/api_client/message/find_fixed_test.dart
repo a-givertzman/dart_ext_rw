@@ -14,7 +14,7 @@ const keepGo = false;
 void main() {
   group('FindFixed.parse', () {
     test('.parse() | u8', () async {
-      FindFixed fieldSyn = FindFixed(val: FieldConst.fromU8(syn));
+      FindFixed fieldSyn = FindFixed(FieldConst.fromU8(syn));
       final testData = [
         (01,  keepGo, [ 11,  12, syn, 13, 14], Some(null), [13, 14]),
         (02,  keepGo, [ 21,  23,  24, 25, 26], Some(null), [21,  23,  24, 25, 26]),
@@ -50,7 +50,7 @@ void main() {
     });
     test('.parse() | u32', () async {
       final field = FieldConst.fromU32(syn);
-      FindFixed fieldSyn = FindFixed(val: field);
+      FindFixed fieldSyn = FindFixed(field);
       final bb = field.bytes;
       final testData = [
         (01,  keepGo, [ 11,  12, bb[0], bb[1], bb[2], bb[3], 13, 14], Some(null), [13, 14]),
