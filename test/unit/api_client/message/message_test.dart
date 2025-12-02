@@ -216,7 +216,7 @@ void main() {
         Message(socket),
       );
       List<Future> replies = [];
-      final target = 100
+      final target = 100;
       final time = Stopwatch()..start();
       for (final i in Iterable.generate(target)) {
         final reply = request.fetch('$query$i').then(
