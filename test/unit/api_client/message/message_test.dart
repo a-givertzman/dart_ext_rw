@@ -216,8 +216,9 @@ void main() {
         Message(socket),
       );
       List<Future> replies = [];
+      final target = 100
       final time = Stopwatch()..start();
-      for (final i in Iterable.generate(100)) {
+      for (final i in Iterable.generate(target)) {
         final reply = request.fetch('$query$i').then(
           (reply) {
             log.info('.request.fetch | reply: $reply');
@@ -230,8 +231,12 @@ void main() {
         );
         replies.add(reply);
       }
-      await Future.wait(replies);
-      log.info('.request | All (${replies.length}) replies finished');
+      log.info(' | Waiting for ${replies.length} requests being finished...');
+      for (final (i, reply) in replies.indexed) {
+        await reply;
+        log.info(' | Request $i of ${replies.length} finished');
+      }
+      // await Future.wait(replies);
       log.info('.request | Elapsed: ${time.elapsed}');
       request.close();
     });
