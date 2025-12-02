@@ -64,7 +64,7 @@ class MessageBuild {
   ///
   /// Returns message built according to specified fields and [bytes]
   List<int> build(Bytes bytes, {int id = 0}) {
-    final builder = BytesBuilder(copy: false);
+    final builder = BytesBuilder(copy: true);
     builder.add([syn.syn]);
     builder.add(FieldId(id).toBytes);
     builder.add([kind.kind]);

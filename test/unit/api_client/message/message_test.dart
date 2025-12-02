@@ -1,15 +1,10 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ext_rw/src/api_client/message/field_const.dart';
-import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_id.dart';
-import 'package:ext_rw/src/api_client/message/field_syn.dart';
 import 'package:ext_rw/src/api_client/message/find_fixed.dart';
 import 'package:ext_rw/src/api_client/message/message.dart';
-import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
@@ -20,161 +15,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 import 'package:hmi_core/hmi_core_result.dart';
+
+import 'fake_request.dart';
+import 'fake_server.dart';
 ///
 /// setup constants
 const int syn = 22;
 const restart = true;
 const keepGo = false;
-///
-/// FakeRequest
-class FakeRequest {
-  final _log = Log('FakeRequest');
-  final Map<int, Completer<Bytes>> _queries = {};
-  final Message _message;
-  int id = 0;
-  ///
-  /// FakeRequest
-  FakeRequest(Message message):
-    _message = message {
-    _message.stream.listen(
-      (event) {
-        final (FieldId id, FieldKind kind, Bytes bytes) = event;
-        _log.debug('.listen.onData | Event | id: $id,  kind: $kind,  bytes: $bytes');
-        if (_queries.containsKey(id.id)) {
-          final query = _queries[id.id];
-          if (query != null) {
-            query.complete(bytes);
-            _queries.remove(id.id);
-          }
-        } else {
-          _log.error('.listen.onData | id \'${id.id}\' - not found');
-        }
-      },
-      onError: (err) {
-        _log.error('.listen.onError | Error: $err');
-        _message.close();
-      },
-      onDone: () {
-        _log.debug('.listen.onDone | Done');
-        _message.close();
-      },
-    );
-  }
-  ///
-  ///
-  Future<Bytes> fetch(String sql) {
-    id++;
-    if (!_queries.containsKey(id)) {
-      _log.debug('.fetch | id: \'$id\',  sql: $sql');
-      final Completer<Bytes> completer = Completer();
-      _queries[id] = completer;
-      final bytes = utf8.encode(sql);
-      _message.add(id, bytes);
-      return completer.future;
-    }
-    throw Exception('.fetch | Duplicated id \'$id\'');
-  }
-  ///
-  ///
-  Future close() {
-    return _message.close();
-  }
-}
-///
-/// Fake socket server
-class Server {
-  final _log = Log('Server');
-  final String host;
-  final int port;
-  ///
-  /// Fake socket server
-  Server(this.host, this.port);
-  ///
-  /// Starting server on the specified [host]:[port] address
-  Future start() {
-    return ServerSocket.bind(host, port).then(
-      (server) {
-        _log.debug('.bind | SocketServer ready on: ${server.address}');
-        server.listen(
-          (socket) {
-            _log.debug('.listen | Connection on: ${socket.address}');
-            final message = ParseSized(
-              size: (_, FieldSize size) => size.size,
-              fromBytes: (Bytes bytes) => bytes,
-              field: ParseFixed<((Null, Null), FieldId), FieldKind, FieldSize>(
-                size: 4,
-                fromBytes: (Bytes bytes) => switch (FieldSize(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
-                  Ok(:final value) => Ok(FieldSize(value)),
-                  Err() => Err(null),
-                },
-                field: ParseFixed<(Null, Null), FieldId, FieldKind>(
-                  size: 1,
-                  fromBytes: (Bytes bytes) => switch (FieldKind.from(bytes[0])) {
-                    Ok(:final value) => Ok(value),
-                    Err() => Err(null),
-                  },
-                  field: ParseFixed<Null, Null, FieldId>(
-                    size: 4,
-                    fromBytes: (Bytes bytes) => switch (FieldId(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
-                      Ok(:final value) => Ok(FieldId(value)),
-                      Err() => Err(null),
-                    },
-                    field: FindFixed(FieldConst.fromU8(syn)),
-                    ),
-                ),
-              ),
-            );
-            final messageBuild = MessageBuild(
-              syn: FieldSyn.def(),
-              id: FieldId.def(),
-              kind: FieldKind.bytes,
-              size: FieldSize.def(),
-              data: FieldData([]),
-            );
-            final remains = BytesBuilder(copy: true);
-            socket.listen(
-              (event) {
-                // _log.debug('.listen.onData | event (${event.length}): $event');
-                remains.add(event);
-                // _log.debug('.listen.onData | input (${input?.length}): $input');
-                switch (message.parse(remains.takeBytes())) {
-                  case Some<(((((Null, Null), FieldId), FieldKind), FieldSize), Bytes, Bytes)>(  value: (((((null, null), FieldId id), FieldKind kind), FieldSize size), Bytes bytes, Bytes remainder)  ):
-                    remains.add(remainder);
-                  // case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
-                    _log.debug('.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
-                    Future.delayed(Duration(milliseconds: 500), () {
-                      final reply = messageBuild.build(bytes, id: id.id);
-                      socket.add(reply);
-                    });
-                    _log.debug('.listen.onData | Microtask started');
-                  case None():
-                    _log.debug('.listen.onData | Parsed | None');
-                }
-              },
-              onError: (err) {
-                _log.error('.listen.onError | Error: $err');
-              },
-              onDone: () {
-                _log.debug('.listen.onDone | Done');
-              },
-            );
-          },
-          onError: (err) {
-            _log.error('.listen.onError | Error: $err');
-            server.close();
-          },
-          onDone: () {
-            _log.debug('.listen.onDone | Done');
-            server.close();
-          },
-        );
-      },
-      onError: (err) {
-        _log.error('.bind.onError | Error: $err');
-      },
-    );
-  }
-}
 ///
 /// Testing [Message]
 void main() {
@@ -185,7 +33,7 @@ void main() {
     ///
     test('.socket()', () async {
       final (host, port) = ('127.0.0.1', 5061);
-      Server(host, port).start();
+      Server(host, port, syn).start();
       log.debug('.Client.connect | Start connect...');
       Future<Socket> connect() async {
         Socket? socket;
@@ -234,7 +82,7 @@ void main() {
       log.info(' | Waiting for ${replies.length} requests being finished...');
       for (final (i, reply) in replies.indexed) {
         await reply;
-        log.info(' | Request $i of ${replies.length} finished');
+        log.info(' | Request ${i + 1} of ${replies.length} finished');
       }
       // await Future.wait(replies);
       log.info('.request | Elapsed: ${time.elapsed}');
