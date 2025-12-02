@@ -38,8 +38,8 @@ void main() {
             size: 4,
             fromBytes: (Bytes bytes) {
               return switch (FieldId(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
-                Ok<int, Failure<dynamic>>(:final value) => Ok(FieldId(value)),
-                Err<int, Failure<dynamic>>() => Err(null),
+                Ok(:final value) => Ok(FieldId(value)),
+                Err() => Err(null),
               };
             },
             field: FindFixed(val: FieldConst.fromU8(syn)),
