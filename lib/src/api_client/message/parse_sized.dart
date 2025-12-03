@@ -5,11 +5,11 @@ import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 ///
 /// Extracting variable size `Field` from the input bytes
-class ParseSized<FldIn, FldOut, Out> implements MessageParse<(FldIn, FldOut), Out, Bytes> {
+class ParseSized<FldIn, FldOut, Out> implements MessageParse<((FldIn, FldOut), Out, Bytes)> {
   // final _log = const Log('ParseSized');
   final int Function(FldIn, FldOut) _size;
   final Out Function(Bytes) _fromBytes;
-  final MessageParse<FldIn, FldOut, Bytes> _field;
+  final MessageParse<(FldIn, FldOut, Bytes)> _field;
   /// `(In, Out, Size)`
   Option<(FldIn, FldOut, int)> _fieldVal;
   final _remains = BytesBuilder(copy: true);
@@ -21,7 +21,7 @@ class ParseSized<FldIn, FldOut, Out> implements MessageParse<(FldIn, FldOut), Ou
   ParseSized({
     required int Function(FldIn, FldOut) size,
     required Out Function(Bytes) fromBytes,
-    required MessageParse<FldIn, FldOut, Bytes> field,
+    required MessageParse<(FldIn, FldOut, Bytes)> field,
   }) :
     _size = size,
     _fromBytes = fromBytes,
@@ -38,6 +38,7 @@ class ParseSized<FldIn, FldOut, Out> implements MessageParse<(FldIn, FldOut), Ou
       case Some<(FldIn, FldOut, int)>(:final value):
         final (fldIn, fldOut, size) = value;
         if (_remains.length >= size) {
+          _fieldVal = None();
           final remains = _remains.takeBytes();
           // _log.debug('.parse | bytes: $bytes');
           // _log.debug('.parse | remaining: ${bytes.sublist(size.size)}');

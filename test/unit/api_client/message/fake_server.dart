@@ -74,18 +74,22 @@ class Server {
                 // _log.debug('.listen.onData | event (${event.length}): $event');
                 remains.add(event);
                 // _log.debug('.listen.onData | input (${input?.length}): $input');
-                switch (message.parse(remains.takeBytes())) {
-                  case Some<(((((Null, Null), FieldId), FieldKind), FieldSize), Bytes, Bytes)>(  value: (((((null, null), FieldId id), FieldKind kind), FieldSize size), Bytes bytes, Bytes remainder)  ):
-                    remains.add(remainder);
-                  // case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
-                    _log.debug('.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
-                    final reply = messageBuild.build(bytes, id: id.id);
-                    Future.delayed(Duration(milliseconds: 500), () {
-                      socket.add(reply);
-                    });
-                    _log.debug('.listen.onData | Microtask started');
-                  case None():
-                    _log.debug('.listen.onData | Parsed | None');
+                bool keepGo = true;
+                while (remains.isNotEmpty && keepGo) {
+                  switch (message.parse(remains.takeBytes())) {
+                    case Some<(((((Null, Null), FieldId), FieldKind), FieldSize), Bytes, Bytes)>(  value: (((((null, null), FieldId id), FieldKind kind), FieldSize size), Bytes bytes, Bytes remainder)  ):
+                      remains.add(remainder);
+                    // case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final size, final bytes)):
+                      _log.debug('.listen.onData | Parsed | id: $id,  kind: $kind,  size: $size, bytes: $bytes');
+                      final reply = messageBuild.build(bytes, id: id.id);
+                      Future.delayed(Duration(milliseconds: 300), () {
+                        socket.add(reply);
+                      });
+                      _log.debug('.listen.onData | Microtask started');
+                    case None():
+                      _log.debug('.listen.onData | Parsed | None');
+                      keepGo = false;
+                  }
                 }
               },
               onError: (err) {

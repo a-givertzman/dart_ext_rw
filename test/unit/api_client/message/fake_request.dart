@@ -16,7 +16,7 @@ class FakeRequest {
   int id = 0;
   ///
   /// FakeRequest
-  FakeRequest(Message message):
+  FakeRequest(Message<FieldId, FieldKind, Bytes> message):
     _message = message {
     _message.stream.listen(
       (event) {
@@ -43,8 +43,9 @@ class FakeRequest {
     );
   }
   ///
-  ///
-  Future<Bytes> fetch(String sql) {
+  /// Sends `sql` to the remote
+  /// - Returns reply or error
+  Future<Bytes> fetch(String sql) async {
     id++;
     if (!_queries.containsKey(id)) {
       _log.debug('.fetch | id: \'$id\',  sql: $sql');
@@ -52,13 +53,12 @@ class FakeRequest {
       _queries[id] = completer;
       final bytes = utf8.encode(sql);
       _message.add(id, bytes);
-      _message.flush();
       return completer.future;
     }
     throw Exception('.fetch | Duplicated id \'$id\'');
   }
   ///
-  ///
+  /// Closes connection
   Future close() {
     return _message.close();
   }

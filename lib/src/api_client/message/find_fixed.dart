@@ -5,7 +5,7 @@ import 'package:hmi_core/hmi_core_option.dart';
 ///
 /// Searches & Extracts some `Key` symbol from the input bytes
 /// - Used to identify a start of the message for example
-class FindFixed implements MessageParse<Null, Null, Bytes> {
+class FindFixed implements MessageParse<(Null, Null, Bytes)> {
   final List<int> _bytes;
   Option _value = None();
   ///

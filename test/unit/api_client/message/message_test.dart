@@ -67,10 +67,13 @@ void main() {
       final target = 100;
       final time = Stopwatch()..start();
       for (final i in Iterable.generate(target)) {
-        final reply = request.fetch('$query$i').then(
+        final queryI = '$query$i';
+        final reply = request.fetch(queryI).then(
           (reply) {
+            final replyI = String.fromCharCodes(reply);
             log.info('.request.fetch | reply: $reply');
-            log.info('.request.fetch | reply text: ${String.fromCharCodes(reply)}');
+            log.info('.request.fetch | reply text: $replyI,  query: $queryI');
+            assert(replyI == queryI, '.request.fetch | \n\t reply text: $replyI,  \n\t query: $queryI');
           },
           onError: (err) {
             log.error('.request.fetch.onError | Error: $err');
@@ -84,7 +87,6 @@ void main() {
         await reply;
         log.info(' | Request ${i + 1} of ${replies.length} finished');
       }
-      // await Future.wait(replies);
       log.info('.request | Elapsed: ${time.elapsed}');
       request.close();
     });

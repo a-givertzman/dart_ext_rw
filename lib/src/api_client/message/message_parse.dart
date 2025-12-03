@@ -33,10 +33,10 @@ import 'package:hmi_core/hmi_core_option.dart';
 ///     - 48, Timestamp
 ///     - 49, Duration
 ///     - .., ...
-abstract class MessageParse<FldIn, FldOut, Out> {
+abstract class MessageParse<T> {
   ///
   /// Returns T if parsed
-  Option<(FldIn, FldOut, Out)> parse(Bytes input);
+  Option<T> parse(Bytes input);
   ///
   /// Resets state to the initial
   void reset();
