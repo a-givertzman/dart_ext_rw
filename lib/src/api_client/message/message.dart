@@ -44,12 +44,12 @@ part 'any_socket.dart';
 ///     message.close();
 ///   },
 /// );
-class Message<T> {
+class Message {
   final _log = Log('Message');
-  final StreamController<T> _controller = StreamController();
+  final StreamController _controller = StreamController();
   final _AnySocket _socket;
   late StreamSubscription? _subscription;
-  final MessageParse<T> _messageParse;
+  final MessageParse _parse;
   final MessageBuild _messageBuild = MessageBuild(
     syn: FieldSyn.def(),
     id: FieldId.def(),
@@ -61,9 +61,9 @@ class Message<T> {
   /// Extracting `id`, `kind` and `payload` parts from the socket stream
   /// - by default [Socket] expected,
   /// - to have [WebSocket] use `Message.web`
-  Message(Socket socket, {MessageParse<(FldIn, FldOut), Out, Bytes>? parse}) :
+  Message(Socket socket, {MessageParse? parse}) :
     _socket = _AnySocketRaw(socket),
-    _messageParse = parse ?? _DefaultMessageParse();
+    _parse = parse ?? _DefaultMessageParse();
     // ParseSized(
     //   size: (_, fldOut) => (fldOut as FieldSize).size,
     //   fromBytes: (Bytes bytes) => bytes as Out,
@@ -92,14 +92,14 @@ class Message<T> {
     // );
   ///
   /// Extracting `id`, `kind` and `payload` parts from the web-socket stream
-  Message.web(WebSocket socket, {MessageParse<(FldIn, FldOut), Out, Bytes>? parse}) :
+  Message.web(WebSocket socket, {MessageParse? parse}) :
     _socket = _AnySocketWeb(socket),
-    _messageParse = parse ?? _DefaultMessageParse();
+    _parse = parse ?? _DefaultMessageParse();
 
   ///
   /// Returns a stream providing the extracted results
-  Stream<(FldIn, FldOut, Out)> get stream {
-    final message = _messageParse;
+  Stream get stream {
+    final message = _parse;
     final remains = BytesBuilder(copy: true);
     _subscription = _socket.listen(
       (List<int> event) {
@@ -171,9 +171,10 @@ class Message<T> {
 
   }
 }
-class _DefaultMessageParse implements MessageParse<(FieldId, FieldKind), Bytes, Bytes> {
-  final MessageParse<(((Null, Null), FieldId), FieldKind), FieldSize, Bytes> _parse = ParseSized(
-    size: (_, fldOut) => (fldOut as FieldSize).size,
+class _DefaultMessageParse implements MessageParse<(FieldId, FieldKind, Bytes)> {
+  final _log = Log('Message');
+  final ParseSized<(((Null, Null), FieldId), FieldKind), FieldSize, List<int>> _parse = ParseSized(
+    size: (_, fldSize) => fldSize.size,
     fromBytes: (Bytes bytes) => bytes,
     field: ParseFixed<((Null, Null), FieldId), FieldKind, FieldSize>(           // Field (u32) Size
       size: 4,
@@ -202,8 +203,16 @@ class _DefaultMessageParse implements MessageParse<(FieldId, FieldKind), Bytes, 
   );
   //
   @override
-  Option<((FldIn, FldOut), Out, Bytes)> parse(Bytes input) {
-    return _parse.parse(input);
+  Option<(FieldId, FieldKind, Bytes)> parse(Bytes input) {
+    switch (_parse.parse(input)) {
+      case Some<(((((Null, Null), FieldId), FieldKind), FieldSize), Bytes, Bytes)>(value: (((((null, null), FieldId id), FieldKind kind), FieldSize size), Bytes bytes, Bytes remainder)):
+        // _log.debug('.parse | id: $id,  kind: $kind,  size: $size, bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
+        _log.debug('.parse | id: $id,  kind: $kind,  size: $size,  remainder: ${remainder.length > 16 ? remainder.sublist(0, 16) : remainder}');
+        return Some((id, kind, bytes));
+      case None():
+        // _log.debug('.parse | None');
+        return None();
+    }
   }
   //
   @override
