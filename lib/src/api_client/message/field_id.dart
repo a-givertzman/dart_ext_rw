@@ -8,7 +8,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 class FieldId {
   // final Log _log = Log('FieldId');
   final int _len;
-  final int _id;
+  final int _val;
   final Endian _endian;
   ///
   /// Returns FieldId new instance
@@ -19,7 +19,7 @@ class FieldId {
   FieldId(int id, {int len = 4, Endian endian = Endian.big}):
     _len = len,
     _endian = endian,
-    _id = id;
+    _val = id;
   ///
   /// Returns FieldId new instance
   /// - With default `len = 4 bytes`
@@ -27,13 +27,13 @@ class FieldId {
   FieldId.def():
     _len = 4,
     _endian =  Endian.big,
-    _id = 0;
+    _val = 0;
   ///
   /// Returns ho;ding `Id`
-  int get id => _id;
+  int get id => _val;
   ///
   /// Returns bytes of specified [id] specified [len]
-  Uint8List get toBytes => Uint8List(_len)..buffer.asByteData().setUint32(0, _id, _endian);
+  Uint8List get toBytes => Uint8List(_len)..buffer.asByteData().setUint32(0, _val, _endian);
   ///
   /// Returns length of the field `Size` in the bytes
   int get len => _len;
@@ -52,16 +52,16 @@ class FieldId {
   //
   @override
   String toString() {
-    return 'FieldId{ id: $_id, len: $_len }';
+    return 'FieldId{ $_val, len: $_len, endian: $_endian}';
   }
   //
   //
   @override
   bool operator ==(Object other) {
-    return (other is FieldId) && (_len == other.len) && (_id == other.id) && (_endian == other._endian);
+    return (other is FieldId) && (_len == other.len) && (_val == other.id) && (_endian == other._endian);
   }
   //
   //
   @override
-  int get hashCode => Object.hash(_endian, _id, _len);
+  int get hashCode => Object.hash(_endian, _val, _len);
 }

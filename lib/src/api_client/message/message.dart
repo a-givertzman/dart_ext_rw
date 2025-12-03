@@ -7,16 +7,19 @@ import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
 import 'package:ext_rw/src/api_client/message/field_syn.dart';
+import 'package:ext_rw/src/api_client/message/find_fixed.dart';
 import 'package:ext_rw/src/api_client/message/message_build.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
-import 'package:ext_rw/src/api_client/message/parse_data.dart';
-import 'package:ext_rw/src/api_client/message/parse_id.dart';
-import 'package:ext_rw/src/api_client/message/parse_kind.dart';
-import 'package:ext_rw/src/api_client/message/parse_size.dart';
-import 'package:ext_rw/src/api_client/message/parse_syn.dart';
+import 'package:ext_rw/src/api_client/message/parse_fixed.dart';
+import 'package:ext_rw/src/api_client/message/parse_sized.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
+import 'package:hmi_core/hmi_core_result.dart';
 import 'package:web_socket/web_socket.dart';
+
+part 'any_socket_tcp.dart';
+part 'any_socket_web.dart';
+part 'any_socket.dart';
 ///
 /// Extracting `id`, `kind` and `payload` parts from the socket stream
 /// 
@@ -43,9 +46,10 @@ import 'package:web_socket/web_socket.dart';
 /// );
 class Message {
   final _log = Log('Message');
-  final StreamController<(FieldId, FieldKind, Bytes)> _controller = StreamController();
+  final StreamController _controller = StreamController();
   final _AnySocket _socket;
   late StreamSubscription? _subscription;
+  final MessageParse _parse;
   final MessageBuild _messageBuild = MessageBuild(
     syn: FieldSyn.def(),
     id: FieldId.def(),
@@ -57,61 +61,83 @@ class Message {
   /// Extracting `id`, `kind` and `payload` parts from the socket stream
   /// - by default [Socket] expected,
   /// - to have [WebSocket] use `Message.web`
-  Message(Socket socket) :
-    _socket = _AnySocketRaw(socket);
+  Message(Socket socket, {MessageParse? parse}) :
+    _socket = _AnySocketRaw(socket),
+    _parse = parse ?? _DefaultMessageParse();
+    // ParseSized(
+    //   size: (_, fldOut) => (fldOut as FieldSize).size,
+    //   fromBytes: (Bytes bytes) => bytes as Out,
+    //   field: ParseFixed<((Null, Null), FieldId), FieldKind, FieldSize>(           // Field (u32) Size
+    //     size: 4,
+    //     fromBytes: (Bytes bytes) => switch (FieldSize(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+    //       Ok(:final value) => Ok(FieldSize(value)),
+    //       Err() => Err(null),
+    //     },
+    //     field: ParseFixed<(Null, Null), FieldId, FieldKind>(                      // Field (u8) Kind 
+    //       size: 1,
+    //       fromBytes: (Bytes bytes) => switch (FieldKind.from(bytes[0])) {
+    //         Ok(:final value) => Ok(value),
+    //         Err() => Err(null),
+    //       },
+    //       field: ParseFixed<Null, Null, FieldId>(                                 // Field (u32) Id
+    //         size: 4,
+    //         fromBytes: (Bytes bytes) => switch (FieldId(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+    //           Ok(:final value) => Ok(FieldId(value)),
+    //           Err() => Err(null),
+    //         },
+    //         field: FindFixed.fromBytes([FieldSyn.def().syn]),                     // Field (u8) SYN
+    //         ),
+    //     ),
+    //   ) as MessageParse<FldIn, FldOut, Bytes>
+    // );
   ///
   /// Extracting `id`, `kind` and `payload` parts from the web-socket stream
-  Message.web(WebSocket socket) :
-    _socket = _AnySocketWeb(socket);
+  Message.web(WebSocket socket, {MessageParse? parse}) :
+    _socket = _AnySocketWeb(socket),
+    _parse = parse ?? _DefaultMessageParse();
+
   ///
   /// Returns a stream providing the extracted results
-  Stream<(FieldId, FieldKind, Bytes)> get stream {
-    final message = ParseData(
-      field: ParseSize(
-        size: FieldSize.def(),
-        field: ParseKind(
-          field: ParseId(
-          id: FieldId.def(),
-            field: ParseSyn.def(),
-          ),
-        ),
-      ),
-    );
-      _subscription = _socket.listen(
-        (List<int> event) {
-          // _log.debug('.listen.onData | Event: $event');
-          List<int>? input = event;
-          bool isSome = true;
-          while (isSome) {
-            switch (message.parse(input)) {
-              case Some<(FieldId, FieldKind, FieldSize, Bytes)>(value: (final id, final kind, final _, final bytes)):
-                // _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
-                _controller.add((id, kind, bytes));
-                input = null;
-              case None():
-                isSome = false;
-                // _log.debug('.listen.onData | None');
-            }
+  Stream get stream {
+    final message = _parse;
+    final remains = BytesBuilder(copy: true);
+    _subscription = _socket.listen(
+      (List<int> event) {
+        // _log.debug('.listen.onData | Event: $event');
+        remains.add(event);
+        bool keepGo = true;
+        while (remains.isNotEmpty && keepGo) {
+          switch (message.parse(remains.takeBytes())) {
+            case Some<((FldIn, FldOut), Out, Bytes)>(value: ((FldIn fldIn, FldOut fldOut), Out out, Bytes remainder)):
+            // case Some<(((((Null, Null), FieldId), FieldKind), FieldSize), Bytes, Bytes)>(value: (((((null, null), FieldId id), FieldKind kind), FieldSize size), Bytes bytes, Bytes remainder)):
+              // _log.debug('.listen.onData | id: $id,  kind: $kind,  size: $size, bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
+              _log.debug('.listen.onData | fldIn: $fldIn,  fldOut: $fldOut,  out: $out,  remainder: ${remainder.length > 16 ? remainder.sublist(0, 16) : remainder}');
+              remains.add(remainder);
+              _controller.add((fldIn, fldOut, out));
+            case None():
+              // _log.debug('.listen.onData | None');
+              keepGo = false;
           }
-        },
-        onError: (err) async {
-          // _log.error('.listen.onError | Error: $err');
-          await Future.wait([
-            _subscription?.cancel() ?? Future.value(),
-            _socket.close(),
-            _controller.close(),
-          ]);
-          return err;
-        },
-        onDone: () async {
-          // _log.debug('.listen.onDone | Done');
-          await Future.wait([
-            _subscription?.cancel() ?? Future.value(),
-            _socket.close(),
-            _controller.close(),
-          ]);
-        },
-      );
+        }
+      },
+      onError: (err) async {
+        // _log.error('.listen.onError | Error: $err');
+        await Future.wait([
+          _subscription?.cancel() ?? Future.value(),
+          _socket.close(),
+          _controller.close(),
+        ]);
+        return err;
+      },
+      onDone: () async {
+        // _log.debug('.listen.onDone | Done');
+        await Future.wait([
+          _subscription?.cancel() ?? Future.value(),
+          _socket.close(),
+          _controller.close(),
+        ]);
+      },
+    );
     return _controller.stream;
   }
   ///
@@ -120,6 +146,15 @@ class Message {
     // _log.debug('.add | id: $id,  bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
     final message = _messageBuild.build(bytes, id: id);
     _socket.add(message);
+  }
+  ///
+  /// Returns a [Future] that completes once all buffered data is accepted by the underlying [StreamConsumer].
+  /// 
+  /// This method must not be called while an [addStream] is incomplete.
+  /// 
+  /// NOTE: This is not necessarily the same as the data being flushed by the operating system.
+  Future<dynamic> flush() {
+    return _socket.flush();
   }
   ///
   /// Close the [stream] and `socket`
@@ -136,122 +171,52 @@ class Message {
 
   }
 }
-///
-/// Switch [Socket] or [WebSocket]
-abstract class _AnySocket {
-  StreamSubscription<List<int>> listen(
-    void Function(List<int>)? onData, {
-    Function? onError,
-    void Function()? onDone,
-    bool? cancelOnError,
-  });
-  ///
-  /// Adds byte [data] to the associated socket.
-  void add(List<int> data);
-  ///
-  ///
-  Future<dynamic> close();
-}
-///
-/// Wrapping a standart socket
-class _AnySocketRaw implements _AnySocket {
-  final _log = Log('_AnySocketRaw');
-  // final Socket? _socketRaw;
-  // final WebSocket? _socketWeb;
-  final Socket _socket;
-  ///
-  ///
-  _AnySocketRaw(Socket socket):
-    _socket = socket;
-  ///
-  ///
-  @override
-  StreamSubscription<List<int>> listen(
-    void Function(List<int>)? onData, {
-    Function? onError,
-    void Function()? onDone,
-    bool? cancelOnError,
-  }) {
-    _log.debug('.listen | ...');
-    return _socket.listen(onData, onError: onError, onDone: onDone);
-  }
-  ///
-  /// Adds byte [data] to the associated socket.
-  @override
-  void add(data) {
-    return _socket.add(data);
-  }
-  ///
-  ///
-  @override
-  Future<dynamic> close() {
-    return _socket.close();
-  }
-}
-///
-/// Wrapping a web socket
-class _AnySocketWeb implements _AnySocket {
-  final _log = Log('_AnySocketWeb');
-  final WebSocket _socket;
-  ///
-  ///
-  _AnySocketWeb(WebSocket socket):
-    _socket = socket;
-  ///
-  ///
-  @override
-  StreamSubscription<List<int>> listen(
-    void Function(List<int>)? onData, {
-    Function? onError,
-    void Function()? onDone,
-    bool? cancelOnError,
-  }) {
-    _log.debug('.listen | ...');
-    return _socket.events
-      .where((WebSocketEvent event) {
-        switch (event) {
-          case BinaryDataReceived():
-            return true;
-          // case CloseReceived():
-            // _log.debug('.listen | CloseReceived: $code');
-            // return true;
-          default:
-            return false;
-        }
-      })
-      .map<List<int>>((event) {
-        switch (event) {
-          case TextDataReceived(:final text):
-            _log.warn('.listen | TextDataReceived - not supported for now \n\t$text');
-          case BinaryDataReceived(:final data):
-            // _log.trace('.listen | BinaryDataReceived \n\t$data');
-            return data;
-          // case CloseReceived(:final code):
-          //   _log.debug('.listen | CloseReceived: $code');
-          default:
-        }
-        return [];
-      })
-      .listen(
-        (event) {
-          // _log.trace('.listen | event: $event');
-          onData?.call(event);
+class _DefaultMessageParse implements MessageParse<(FieldId, FieldKind, Bytes)> {
+  final _log = Log('Message');
+  final ParseSized<(((Null, Null), FieldId), FieldKind), FieldSize, List<int>> _parse = ParseSized(
+    size: (_, fldSize) => fldSize.size,
+    fromBytes: (Bytes bytes) => bytes,
+    field: ParseFixed<((Null, Null), FieldId), FieldKind, FieldSize>(           // Field (u32) Size
+      size: 4,
+      fromBytes: (Bytes bytes) => switch (FieldSize(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+        Ok(:final value) => Ok(FieldSize(value)),
+        Err() => Err(null),
+      },
+      field: ParseFixed<(Null, Null), FieldId, FieldKind>(                      // Field (u8) Kind 
+        size: 1,
+        fromBytes: (Bytes bytes) => switch (FieldKind.from(bytes[0])) {
+          Ok(:final value) => Ok(value),
+          Err() => Err(null),
         },
-        onError: onError,
-        onDone: onDone,
-        cancelOnError: cancelOnError,
-      );
-  }
-  ///
-  /// Adds byte [data] to the associated socket.
+        field: ParseFixed<Null, Null, FieldId>(                                 // Field (u32) Id
+          size: 4,
+          fromBytes: (Bytes bytes) => switch (FieldId(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+            Ok(:final value) => Ok(FieldId(value)),
+            Err() => Err(null),
+          },
+          field: FindFixed.fromBytes([                                          // Field (u8) SYN
+            FieldSyn.def().syn
+          ]),
+        ),
+      ),
+    ),
+  );
+  //
   @override
-  void add(data) {
-    return _socket.sendBytes(Uint8List.fromList(data));
+  Option<(FieldId, FieldKind, Bytes)> parse(Bytes input) {
+    switch (_parse.parse(input)) {
+      case Some<(((((Null, Null), FieldId), FieldKind), FieldSize), Bytes, Bytes)>(value: (((((null, null), FieldId id), FieldKind kind), FieldSize size), Bytes bytes, Bytes remainder)):
+        // _log.debug('.parse | id: $id,  kind: $kind,  size: $size, bytes: ${bytes.length > 16 ? bytes.sublist(0, 16) : bytes}');
+        _log.debug('.parse | id: $id,  kind: $kind,  size: $size,  remainder: ${remainder.length > 16 ? remainder.sublist(0, 16) : remainder}');
+        return Some((id, kind, bytes));
+      case None():
+        // _log.debug('.parse | None');
+        return None();
+    }
   }
-  ///
-  ///
+  //
   @override
-  Future<dynamic> close() {
-    return _socket.close();
+  void reset() {
+    _parse.reset();
   }
 }

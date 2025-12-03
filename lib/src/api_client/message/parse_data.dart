@@ -6,7 +6,7 @@ import 'package:ext_rw/src/api_client/message/message_parse.dart';
 import 'package:hmi_core/hmi_core_option.dart';
 ///
 /// Extracting `payload` part from the input bytes
-class ParseData implements MessageParse<Bytes, Option<(FieldId, FieldKind, FieldSize, Bytes)>> {
+class ParseData implements MessageParse<FieldId, FieldKind, FieldSize> {
   // final _log = const Log('ParseData');
   final MessageParse<Bytes, Option<(FieldId, FieldKind, FieldSize, Bytes)>> _field;
   Bytes _buf = [];

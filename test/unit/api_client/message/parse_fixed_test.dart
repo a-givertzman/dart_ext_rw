@@ -1,32 +1,48 @@
+import 'package:ext_rw/src/api_client/message/field_const.dart';
 import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
 import 'package:ext_rw/src/api_client/message/field_size.dart';
+import 'package:ext_rw/src/api_client/message/find_fixed.dart';
 import 'package:ext_rw/src/api_client/message/message_parse.dart';
-import 'package:ext_rw/src/api_client/message/parse_id.dart';
-import 'package:ext_rw/src/api_client/message/parse_kind.dart';
-import 'package:ext_rw/src/api_client/message/parse_size.dart';
-import 'package:ext_rw/src/api_client/message/parse_syn.dart';
+import 'package:ext_rw/src/api_client/message/parse_fixed.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hmi_core/hmi_core_log.dart';
 import 'package:hmi_core/hmi_core_option.dart';
+import 'package:hmi_core/hmi_core_result.dart';
+import 'package:hmi_core/src/core/error/failure.dart';
 ///
 /// setup constants
 const int syn = 22;
 const restart = true;
 const keepGo = false;
 ///
-/// Testing [ParseSize].parse
+/// Testing [ParseFixed].parse
 void main() {
   Log.initialize(level: LogLevel.all);
-  group('SizeParse.parse', () {
+  group('ParseFixed.parse', () {
     test('.parse()', () async {
-      ParseSize sizeParse = ParseSize(
-        size: FieldSize.def(),
-        field: ParseKind(
-          field: ParseId(
-            id: FieldId.def(),
-            field: ParseSyn.def(),
+      ParseFixed<((Null, Null), FieldId), FieldKind, FieldSize> sizeParse = ParseFixed(
+        size: 4,
+        fromBytes: (Bytes bytes) => switch (FieldSize(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+          Ok<int, Failure<dynamic>>(:final value) => Ok(FieldSize(value)),
+          Err() => Err(null),
+        },
+        field: ParseFixed<(Null, Null), FieldId, FieldKind>(
+          size: 1,
+          fromBytes: (Bytes bytes) => switch (FieldKind.from(bytes[0])) {
+            Ok(:final value) => Ok(value),
+            Err() => Err(null),
+          },
+          field: ParseFixed<Null, Null, FieldId>(
+            size: 4,
+            fromBytes: (Bytes bytes) {
+              return switch (FieldId(0, len: 4, endian: Endian.big).fromBytes(bytes)) {
+                Ok(:final value) => Ok(FieldId(value)),
+                Err() => Err(null),
+              };
+            },
+            field: FindFixed(FieldConst.fromU8(syn)),
             ),
         ),
       );
@@ -49,18 +65,10 @@ void main() {
       ];
       for (final (step, restart, bytes, target, targetBytes) in testData) {
         if (restart) {
-          sizeParse = ParseSize(
-            size: FieldSize.def(),
-            field: ParseKind(
-              field: ParseId(
-                id: FieldId.def(),
-                field: ParseSyn.def(),
-              ),
-            ),
-          );
+          sizeParse.reset();
         }
         switch (sizeParse.parse(bytes)) {
-          case Some(value: (FieldId _, FieldKind _, FieldSize size, Bytes resultBytes)):
+          case Some<((((Null, Null), FieldId), FieldKind), FieldSize, Bytes)>(value: (((_, FieldId _), FieldKind _), FieldSize size, Bytes resultBytes)):
             expect(
               target,
               isA<Some>(),

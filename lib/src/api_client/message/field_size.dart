@@ -7,7 +7,7 @@ import 'package:hmi_core/hmi_core_result.dart';
 /// Used as `size` in bytes of the `data` stored in the `Message`
 class FieldSize {
   // final Log _log = Log('FieldSize');
-  final int _size;
+  final int _val;
   final int _len;
   final Endian _endian;
   ///
@@ -17,7 +17,7 @@ class FieldSize {
   ///   - `Endian.big      [00, 00, 00, 01] -> 1`
   ///   - `Endian.little   [01, 00, 00, 00] -> 1`
   FieldSize(int size, {int len = 4, Endian endian = Endian.big}):
-    _size = size,
+    _val = size,
     _len = len,
     _endian = endian;
   ///
@@ -25,15 +25,15 @@ class FieldSize {
   /// - With default `len = 4 bytes`
   /// - With default `endian = Endian.big`
   FieldSize.def():
-    _size = 0,
+    _val = 0,
     _len = 4,
     _endian =  Endian.big;
   ///
-  /// Returns holding size
-  int get size => _size;
+  /// Returns holding size value
+  int get size => _val;
   ///
   /// Returns bytes of specified [size] of specified [len]
-  Uint8List get toBytes => Uint8List(_len)..buffer.asByteData().setUint32(0, _size, _endian);
+  Uint8List get toBytes => Uint8List(_len)..buffer.asByteData().setUint32(0, _val, _endian);
   ///
   /// Returns length of the field `Size` in the bytes
   int get len => _len;
@@ -47,5 +47,10 @@ class FieldSize {
       return Ok(size);
     }
     return Err(Failure('FieldSize.from | input bytes length less then specified $_len'));
+  }
+  //
+  @override
+  String toString() {
+    return 'FieldSize{ $_val, len: $_len, endian: $_endian}';
   }
 }

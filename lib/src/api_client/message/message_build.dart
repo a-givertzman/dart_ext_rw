@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:ext_rw/src/api_client/message/field_data.dart';
 import 'package:ext_rw/src/api_client/message/field_id.dart';
 import 'package:ext_rw/src/api_client/message/field_kind.dart';
@@ -62,6 +64,13 @@ class MessageBuild {
   ///
   /// Returns message built according to specified fields and [bytes]
   List<int> build(Bytes bytes, {int id = 0}) {
-    return [syn.syn, ...FieldId(id).toBytes, kind.kind, ...FieldSize(bytes.length, len: size.len).toBytes, ...bytes];
+    final builder = BytesBuilder(copy: true);
+    builder.add([syn.syn]);
+    builder.add(FieldId(id).toBytes);
+    builder.add([kind.kind]);
+    builder.add(FieldSize(bytes.length, len: size.len, endian: Endian.big).toBytes);
+    builder.add(bytes);
+    return builder.takeBytes();
+    // return [syn.syn, ...FieldId(id).toBytes, kind.kind, ...FieldSize(bytes.length, len: size.len).toBytes, ...bytes];
   }
 }
